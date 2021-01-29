@@ -72,8 +72,7 @@ async def init() -> State:
     while True:
         try:
             await asyncio.sleep(current_wait)
-            state.db_conn = await db.connect(
-                on_cron_update=on_cron_update(state))
+            state.db_conn = await db.connect(on_cron_update=on_cron_update(state))
             state.cron_jobs = await db.load_cron_jobs(state.db_conn)
             return state
         except Exception as e:

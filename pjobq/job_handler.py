@@ -50,4 +50,4 @@ def as_http_job(job: Job) -> HttpJob:
             "url": req_args["url"],
             "body": req_args["body"],
         }
-    )                           # type: ignore
+    )  # type: ignore
