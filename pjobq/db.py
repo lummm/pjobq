@@ -16,17 +16,15 @@ from .env import ENV
 CRON_NOTIFY_CHANNEL = "cron_job"
 CRON_TABLE_UPDATE_CMD = "update"
 
-
 async def connect(
-    on_cron_update: CronUpdateCallback = lambda x: None,
+        on_cron_update: CronUpdateCallback = lambda x: None,
 ) -> DBCon:
-    # TODO: add retry
     con = await asyncpg.connect(
-        user=ENV.PGUSER,
-        password=ENV.PGPASSWORD,
-        database=ENV.PGDB,
-        host=ENV.PGHOST,
-    )
+            user=ENV.PGUSER,
+            password=ENV.PGPASSWORD,
+            database=ENV.PGDB,
+            host=ENV.PGHOST,
+        )
     await con.add_listener(CRON_NOTIFY_CHANNEL, _create_update_cb(on_cron_update))
     return con
 

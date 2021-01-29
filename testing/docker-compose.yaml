@@ -1,4 +1,4 @@
-version: "3.6"
+version: "3.9"
 services:
   pjobq:
     image: pjobq
@@ -12,5 +12,12 @@ services:
   db:
     image: postgres:13.1
     environment:
-      - POSTGRES_USER=PGUSER
-      - POSTGRES_PASSWORD=PGPASSWORD
+      - POSTGRES_USER=${PGUSER}
+      - POSTGRES_PASSWORD=${PGPASSWORD}
+      - POSTGRES_DB=${PGDB}
+    volumes:
+    - db_data:/var/lib/postgresql/data
+
+
+volumes:
+  db_data:

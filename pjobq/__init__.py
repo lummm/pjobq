@@ -23,6 +23,9 @@ from .env import ENV
 from . import job_handler
 
 
+INIT_RETRY_WAIT_LIMIT_S = 120
+
+
 # all application state lives here
 class State(SimpleNamespace):
     cron_jobs: List[Job]
@@ -59,18 +62,39 @@ def setup_logging() -> None:
     return
 
 
-async def run():
-    setup_logging()
+async def init() -> State:
     logging.info("cron job q starting...")
+    attempt = 1
+    current_wait = 0
     state = State(
         cron_jobs=[],
     )
-    state.db_conn = await db.connect(on_cron_update=on_cron_update(state))
-    state.cron_jobs = await db.load_cron_jobs(state.db_conn)
+    while True:
+        try:
+            await asyncio.sleep(current_wait)
+            state.db_conn = await db.connect(
+                on_cron_update=on_cron_update(state))
+            state.cron_jobs = await db.load_cron_jobs(state.db_conn)
+            return state
+        except Exception as e:
+            logging.exception(e)
+            attempt += 1
+            current_wait = min([2 ** (attempt - 1), INIT_RETRY_WAIT_LIMIT_S])
+            logging.info("attempt init again in %s seconds", current_wait)
+    return
+
+
+async def run():
+    setup_logging()
+    state = await init()
     logging.info("loaded %s jobs", len(state.cron_jobs))
     while True:
-        await asyncio.sleep(1)
-        if datetime.now().second == 0:
-            # cron is up to minute
-            check_cron_jobs(state.cron_jobs)
+        try:
+            await asyncio.sleep(1)
+            if datetime.now().second == 0:
+                # cron is up to minute
+                check_cron_jobs(state.cron_jobs)
+        except Exception as e:
+            logging.exception(e)
+            state = await init()
     return
