@@ -1,0 +1,4 @@
+#!/bin/bash
+# THESE SCRIPTS MUST BE RUN FROM THE TOP LEVEL DIRECTORY
+
+docker build -t pjobq .

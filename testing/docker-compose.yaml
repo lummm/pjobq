@@ -1,0 +1,16 @@
+version: "3.6"
+services:
+  pjobq:
+    image: pjobq
+    environment:
+      - LOG_LEVEL
+      - PGDB
+      - PGHOST
+      - PGUSER
+      - PGPASSWORD
+
+  db:
+    image: postgres:13.1
+    environment:
+      - POSTGRES_USER=PGUSER
+      - POSTGRES_PASSWORD=PGPASSWORD
