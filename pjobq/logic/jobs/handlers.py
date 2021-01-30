@@ -1,18 +1,19 @@
 """
-Functions in this module execute in the context of an asycnio task.
-Job handling should ideally be pure I/O.
+This package defines handlers to fire when a job needs to be run.
+
+Job handling should always be executing in the context of an asycnio task (thus we can await as we please and not block firing off other jobs).
+Job handling should ideally be pure I/O, as we are single threaded.
 """
 
-import dataclasses
-import json
 import logging
 
 import aiohttp
 
-from .apptypes import Job, HttpJob
+from ...apptypes import Job, HttpJob
+from .job_conversion import as_http_job
 
 
-async def handle(job: Job):
+async def handle_job(job: Job):
     logging.info("running job %s::%s", job.job_name, job.job_id)
     if job.cmd_type == "HTTP":
         return await handle_http(as_http_job(job))
@@ -38,16 +39,3 @@ async def handle_http(job: HttpJob):
                     job.job_id,
                 )
     return
-
-
-# private
-def as_http_job(job: Job) -> HttpJob:
-    req_args = json.loads(job.cmd_payload)
-    return HttpJob(
-        **dataclasses.asdict(job),
-        **{
-            "method": req_args["method"],
-            "url": req_args["url"],
-            "body": req_args["body"],
-        }
-    )  # type: ignore

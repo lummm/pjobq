@@ -4,11 +4,11 @@ Provides command-line entry to the package
 
 import asyncio
 
-from pjobq import run
+from pjobq import run_application
 
 
 def main():
-    asyncio.run(run())
+    asyncio.run(run_application())
     return
 
 

@@ -26,3 +26,13 @@ async def attempt_forever(
             attempt += 1
             current_wait = min([2 ** (attempt - 1), retry_wait_limit_s])
             logging.info("%s failure - try again in %s seconds", name, current_wait)
+
+
+def setup_logging(level=logging.INFO) -> None:
+    logging.basicConfig(
+        level=level,
+        format=f"%(asctime)s.%(msecs)03d "
+        "%(levelname)s %(module)s - %(funcName)s: %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+    return

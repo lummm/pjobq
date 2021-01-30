@@ -1,10 +1,12 @@
 from dataclasses import dataclass
-from typing import Callable
+from typing import Callable, Awaitable
 
 import asyncpg  # type: ignore
 
 
-# data types
+# ----------------------
+# ----- data types -----
+# ----------------------
 @dataclass
 class Job:
     "a generic job"
@@ -28,11 +30,17 @@ class HttpJob(Job):
     body: str
 
 
-# database types
-
-# PG-specific types
+# ----------------------
+# --- database types ---
+# ----------------------
 # an update callback to receive the latest cron_jobs
 DBCon = asyncpg.Connection
 NotifyChannel = str
 NotifyPayload = str
 PgNotifyListener = Callable[[NotifyPayload], None]
+
+
+# ----------------------
+# ---- other types -----
+# ----------------------
+JobHandler = Callable[[Job], Awaitable[None]]
