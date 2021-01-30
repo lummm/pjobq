@@ -14,6 +14,7 @@ from .job_conversion import as_http_job
 
 
 async def handle_job(job: Job):
+    "top level handler entry"
     logging.info("running job %s::%s", job.job_name, job.job_id)
     if job.cmd_type == "HTTP":
         return await handle_http(as_http_job(job))
@@ -22,6 +23,7 @@ async def handle_job(job: Job):
 
 
 async def handle_http(job: HttpJob):
+    "handle an http job"
     req_args = {}
     if job.body:
         req_args["body"] = job.body

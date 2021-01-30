@@ -23,8 +23,7 @@ def as_http_job(job: Job) -> HttpJob:
 
 def base_job_dict(job: Job) -> dict:
     """
-    return a job as a dict, only specifying the keys
-    that exist on the Job base class
+    Return a job as a dict, only specifying the keys that exist on the Job base class.
     """
     return dict(
         [(field.name, getattr(job, field.name)) for field in dataclasses.fields(Job)]
