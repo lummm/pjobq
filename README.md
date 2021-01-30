@@ -1,15 +1,14 @@
-* JOBS
-A DB - defined job queue ala cron.
-- python process stays in sync with 'cron' table,
-  and launches jobs per schedule.
+# About
+pjobq is a python library to define a dynamic job scheduler, in conjunction with postgres.
+
+# Components
+
+cron-style scheduler:
+Define the DB table [cron_job](db/cron_job.sql) and corresponding functions to create recurring jobs with cron syntax.
 
 
-* impl
-- define db function to schedule a recurring daily job,
-  with TZ and hours:mins
+# Usage
+## Building
+Docker image 'pjoqb' can be built from the root directory with `./hooks/build`.
 
-
-* next steps
-- failure notifications
-
-- do perf tests with large numbers of re-ocurring tasks.  Is performance OK just iterating the whole list every minute?
+python package 'pjobq' can be installed with `python -m pip install .`

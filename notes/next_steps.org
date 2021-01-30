@@ -1,0 +1,12 @@
+
+
+* impl
+- define db function to schedule a recurring daily job,
+  with TZ and hours:mins
+
+
+* next steps
+- adhoc scheduler
+- failure notifications
+
+- do perf tests with large numbers of re-ocurring tasks.  Is performance OK just iterating the whole list every minute?

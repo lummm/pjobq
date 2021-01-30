@@ -23,9 +23,6 @@ from . import job_handler
 from .util import attempt_forever
 
 
-INIT_RETRY_WAIT_LIMIT_S = 120
-
-
 def setup_logging() -> None:
     logging.basicConfig(
         level=ENV.LOG_LEVEL,
@@ -48,6 +45,7 @@ def check_cron_jobs(cron_jobs: list[CronJob]):
 
 
 async def init() -> State:
+    "init with retry"
     return await attempt_forever("pjobq init", init_state)
 
 
