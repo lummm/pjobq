@@ -9,7 +9,7 @@ Define the DB table [cron_job](db/cron_job.sql) and corresponding functions to c
 
 # Usage
 ## Building
-Docker image 'pjoqb' can be built from the root directory with `./hooks/build`.
+Docker image 'pjobq' can be built from the root directory with `./hooks/build`.
 
 python package 'pjobq' can be installed with `python -m pip install .`
 

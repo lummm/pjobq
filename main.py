@@ -1,5 +1,6 @@
+#!/usr/bin/env python3.9
 """
-Provides command-line entry to the package
+Provides entry to pjobq
 """
 
 import asyncio

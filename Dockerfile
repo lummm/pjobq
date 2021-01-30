@@ -1,14 +1,19 @@
 FROM python:3.9.1-slim-buster AS base
+ENV TINI_VERSION v0.19.0
 WORKDIR /app
 COPY ./requirements.txt ./requirements.txt
 RUN apt update \
         && apt install --assume-yes \
         build-essential \
         libpq-dev \
+        curl \
         && python -m pip install -r ./requirements.txt \
+        && curl -L https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini -o /tini \
+        && chmod +x /tini \
         && apt autoremove --assume-yes \
         build-essential \
         libpq-dev
+
 COPY ./setup.py ./setup.py
 
         # first a test / mypy build
@@ -26,4 +31,5 @@ RUN ./test/run.sh
 FROM base
 COPY ./pjobq ./pjobq
 RUN python -m pip install .
-ENTRYPOINT ["python", "-m", "pjobq"]
+COPY ./main.py ./main.py
+ENTRYPOINT ["/tini", "/app/main.py"]
