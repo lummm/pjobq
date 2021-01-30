@@ -1,23 +1,23 @@
 from dataclasses import dataclass
-from typing import Callable, List, Any
+from typing import Callable
 
 import asyncpg  # type: ignore
 
 
-# an update callback to receive the latest cron_jobs
-CronUpdateCallback = Callable[[List[Any]], None]
-
-DBCon = asyncpg.Connection
-
-
+# data types
 @dataclass
 class Job:
     "a generic job"
     job_id: str
     job_name: str
-    cron_schedule: str
     cmd_type: str
     cmd_payload: str
+
+
+@dataclass
+class CronJob(Job):
+    "job scheduled with cron syntax (ie. recurring)"
+    cron_schedule: str
 
 
 @dataclass
@@ -28,6 +28,11 @@ class HttpJob(Job):
     body: str
 
 
-@dataclass
-class A:
-    x: int
+# database types
+
+# PG-specific types
+# an update callback to receive the latest cron_jobs
+DBCon = asyncpg.Connection
+NotifyChannel = str
+NotifyPayload = str
+PgNotifyListener = Callable[[NotifyPayload], None]

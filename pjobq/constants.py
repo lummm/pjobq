@@ -1,0 +1,3 @@
+CRON_NOTIFY_CHANNEL = "cron_job"
+
+NOTIFY_UPDATE_CMD = "update"
