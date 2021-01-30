@@ -1,12 +1,32 @@
+import json
 import unittest
 
-from pjobq.apptypes import Job, CronJob
+from pjobq.apptypes import Job, CronJob, HttpJob
 import pjobq.logic.jobs.job_conversion as job_conversion
 
 
 class TestJobConversion(unittest.TestCase):
 
     def test_as_http_job(self):
+        payload = json.dumps({
+            "method": "GET",
+            "url": "http://testing.com",
+        })
+        job = Job(
+            job_id="an-id",
+            job_name="a-name",
+            cmd_type="HTTP",
+            cmd_payload=payload,
+        )
+        self.assertEqual(job_conversion.as_http_job(job), HttpJob(
+            job_id="an-id",
+            job_name="a-name",
+            cmd_type="HTTP",
+            cmd_payload=payload,
+            method="GET",
+            url="http://testing.com",
+            body=None,
+        ))
         return
 
     def test_base_job_dict(self):

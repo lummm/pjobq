@@ -14,6 +14,7 @@ from ..apptypes import CronJob, PgNotifyListener, NotifyChannel
 from .. import constants as constants
 from ..models import CronJobModelImpl, CronJobModel
 from ..db import DBImpl, DB
+from ..apphttp import AppHttp, AppHttpImpl
 
 
 class State:
@@ -22,6 +23,7 @@ class State:
     cron_jobs: all known cron_jobs
     """
 
+    http: AppHttp
     db: DB
     cron_model: type[CronJobModel]
     cron_jobs: list[CronJob]
@@ -30,9 +32,11 @@ class State:
         self,
         db: DB = DBImpl(),
         cron_model: type[CronJobModel] = CronJobModelImpl,
+        http: AppHttp = AppHttpImpl(),
     ) -> None:
-        print("db", db)
         await db.init()
+        await http.init()
+        self.http = http
         self.db = db
         self.cron_model = cron_model
         self.cron_jobs = []

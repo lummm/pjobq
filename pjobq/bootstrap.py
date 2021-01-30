@@ -8,7 +8,7 @@ import logging
 
 from .runtime import State, default_init
 from .env import ENV
-from .logic.jobs import handle_job, run_scheduled_cron_jobs
+from .logic.jobs import handle_job_factory, run_scheduled_cron_jobs
 from .util import attempt_forever, setup_logging
 
 
@@ -25,13 +25,14 @@ async def run_cron_job_loop(
     Literally sleep every second and check if we are at the top of a minute (cron is up to the minute).
     If so, we check our known list of cron_jobs to see if any must be run.
     """
+    handler = handle_job_factory(state)
     while True:
         await asyncio.sleep(1)
         if datetime.now().second == 0:
             run_scheduled_cron_jobs(
                 loop=loop,
                 cron_jobs=state.cron_jobs,
-                handler=handle_job,
+                handler=handler,
             )
     return
 

@@ -10,12 +10,12 @@ RUN apt update \
         build-essential \
         libpq-dev
 COPY ./setup.py ./setup.py
-COPY ./pjobq ./pjobq
 
         # first a test / mypy build
 FROM base
 ENV PGPASSWORD=test-pg-password
 RUN python -m pip install mypy==0.800
+COPY ./pjobq ./pjobq
 RUN python -m mypy ./pjobq
 RUN python -m pip install .
 COPY ./test ./test
@@ -23,5 +23,6 @@ RUN find ./test -name '*.test.py' | xargs python
 
         # lighter deploy build
 FROM base
+COPY ./pjobq ./pjobq
 RUN python -m pip install .
 ENTRYPOINT ["python", "-m", "pjobq"]

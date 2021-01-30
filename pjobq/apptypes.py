@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Callable, Awaitable, Any
+from typing import Callable, Awaitable, Any, Optional
 
 import asyncpg  # type: ignore
 
@@ -27,7 +27,7 @@ class HttpJob(Job):
     "a job to be executed as an http request"
     method: str
     url: str
-    body: str
+    body: Optional[str] = None
 
 
 # ----------------------
