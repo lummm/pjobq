@@ -32,7 +32,7 @@ def handle_job_factory(state: State) -> JobHandler:
     return handle_job
 
 
-async def handle_http(http: AppHttp, job: HttpJob):
+async def handle_http(http: AppHttp, job: HttpJob) -> None:
     "handle an http job"
     req_args = {}
     if job.body:

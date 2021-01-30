@@ -19,7 +19,8 @@ COPY ./pjobq ./pjobq
 RUN python -m mypy ./pjobq
 RUN python -m pip install .
 COPY ./test ./test
-RUN find ./test -name '*.test.py' | xargs python
+RUN python -m pip install ./test
+RUN ./test/run.sh
 
         # lighter deploy build
 FROM base

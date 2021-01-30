@@ -1,4 +1,0 @@
-#!/bin/bash
-# THESE SCRIPTS MUST BE RUN FROM THE TOP LEVEL DIRECTORY
-
-find ./test -name '*.test.py' | xargs python3.9
