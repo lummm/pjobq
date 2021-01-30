@@ -6,7 +6,7 @@ import asyncio
 from datetime import datetime
 import logging
 
-from .runtime import State, init as init_state
+from .runtime import State, default_init
 from .env import ENV
 from .logic.jobs import handle_job, run_scheduled_cron_jobs
 from .util import attempt_forever, setup_logging
@@ -14,7 +14,7 @@ from .util import attempt_forever, setup_logging
 
 async def init() -> State:
     "initialize the applciation, with retry"
-    return await attempt_forever("pjobq init", init_state)
+    return await attempt_forever("pjobq init", default_init)
 
 
 async def run_cron_job_loop(

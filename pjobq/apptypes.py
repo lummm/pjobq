@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Callable, Awaitable
+from typing import Callable, Awaitable, Any
 
 import asyncpg  # type: ignore
 
@@ -37,7 +37,7 @@ class HttpJob(Job):
 DBCon = asyncpg.Connection
 NotifyChannel = str
 NotifyPayload = str
-PgNotifyListener = Callable[[NotifyPayload], None]
+PgNotifyListener = Callable[[NotifyPayload], Any]
 
 
 # ----------------------
