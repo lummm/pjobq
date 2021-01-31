@@ -34,7 +34,7 @@ class State:
     http: AppHttp
     loop: asyncio.AbstractEventLoop
     adhoc_scheduler: AdhocScheduler
-    cron_scheduler: AdhocScheduler
+    cron_scheduler: CronScheduler
 
     async def init(
         self,

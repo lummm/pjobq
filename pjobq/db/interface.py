@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Any
 
 import asyncpg  # type: ignore
 
@@ -19,6 +20,6 @@ class DB(ABC):
         return
 
     @abstractmethod
-    async def fetch(self, sql: str, bindargs: list[str] = []) -> list[asyncpg.Record]:
+    async def fetch(self, sql: str, bindargs: list[Any] = []) -> list[asyncpg.Record]:
         "fetch the results of an arbitrary aql query"
         pass

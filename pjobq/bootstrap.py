@@ -35,7 +35,7 @@ async def run_cron_job_loop(
         if datetime.now().second == 0:
             run_scheduled_cron_jobs(
                 loop=state.loop,
-                cron_jobs=state.cron_jobs,
+                cron_jobs=state.cron_scheduler.cron_jobs,
                 handler=handler,
             )
     return
