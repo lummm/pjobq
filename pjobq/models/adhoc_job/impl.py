@@ -1,3 +1,5 @@
+import time
+
 from ...apptypes import AdhocJob
 from .interface import AdhocJobModel
 from ...db import DB
@@ -28,3 +30,14 @@ class AdhocJobModelImpl(AdhocJobModel):
         """
         rows = await db.fetch(sql, [start_time, end_time])
         return [adhoc_job_converter(row) for row in rows]
+
+    @staticmethod
+    async def set_job_completed(
+        db: DB, job_id: str, completed_ts: float = time.time()
+    ) -> None:
+        sql = """
+        UPDATE adhoc_job
+           SET completed_ts = to_timestamp($2)
+         WHERE job_id = $1
+        """
+        await db.execute(sql, [job_id, completed_ts])

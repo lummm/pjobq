@@ -9,31 +9,14 @@ import logging
 
 import aiohttp
 
-from ...apptypes import Job, HttpJob, JobHandler
-from ...runtime import State
+from ...apptypes import HttpJob, Job
 from ...apphttp import AppHttp
 from .job_conversion import as_http_job
 
 
-def handle_job_factory(state: State) -> JobHandler:
-    """
-    Close over the state here to promote a more functional approach at
-    the logic level.
-    """
-
-    async def handle_job(job: Job):
-        """Top level handler entry."""
-        logging.info("running job %s::%s", job.job_name, job.job_id)
-        if job.cmd_type == "HTTP":
-            return await handle_http(state.http, as_http_job(job))
-        logging.error("no such cmd type %s", job.cmd_type)
-        return
-
-    return handle_job
-
-
-async def handle_http(http: AppHttp, job: HttpJob) -> None:
+async def handle_http(http: AppHttp, generic_job: Job) -> None:
     "handle an http job"
+    job: HttpJob = as_http_job(generic_job)
     req_args = {}
     if job.body:
         req_args["body"] = job.body

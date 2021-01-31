@@ -9,3 +9,12 @@
 - failure notifications?
 
 - do perf tests with large numbers of re-ocurring tasks.  Is performance OK just iterating the whole list every minute?
+- TESTING
+
+* testing road map
+- unit tests for all logic
+- IT tests that spin up the docker-compose system
+  and run tests against it.
+
+* cleanup
+- Models being static classes is dumb.

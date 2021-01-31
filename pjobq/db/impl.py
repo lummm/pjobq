@@ -5,7 +5,7 @@ database (postgres) implementation.
 import asyncio
 import dataclasses
 import logging
-from typing import Callable
+from typing import Any, Callable
 
 import asyncpg  # type: ignore
 
@@ -54,6 +54,10 @@ class DBImpl(DB):
     async def fetch(self, sql: str, bindargs: list[str] = []) -> list[asyncpg.Record]:
         async with self.con.transaction():
             return await self.con.fetch(sql, *bindargs)
+
+    async def execute(self, sql: str, bindargs: list[Any] = []) -> None:
+        async with self.con.transaction():
+            return await self.con.execute(sql, *bindargs)
 
 
 def _create_notify_cb(cb: PgNotifyListener):

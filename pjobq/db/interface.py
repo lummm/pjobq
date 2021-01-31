@@ -21,5 +21,10 @@ class DB(ABC):
 
     @abstractmethod
     async def fetch(self, sql: str, bindargs: list[Any] = []) -> list[asyncpg.Record]:
-        "fetch the results of an arbitrary aql query"
+        "fetch the results of an arbitrary sql query"
+        pass
+
+    @abstractmethod
+    async def execute(self, sql: str, bindargs: list[Any] = []) -> None:
+        "exwecute arbitrary sql"
         pass

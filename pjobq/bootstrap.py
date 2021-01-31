@@ -7,12 +7,30 @@ from datetime import datetime
 import logging
 import time
 
-from .apptypes import JobHandler
+from .apptypes import JobHandler, Job
 from .runtime import State, default_init
 from .constants import ADHOC_JOB_INTERVAL_S
 from .env import ENV
-from .logic.jobs import handle_job_factory, run_scheduled_cron_jobs
+from .logic.jobs import handle_http, run_scheduled_cron_jobs
 from .util import attempt_forever, setup_logging
+
+
+def handle_job_factory(state: State) -> JobHandler:
+    """
+    Close over state here to promote a more functional approach at
+    the logic level. (ie. don't mutate the state).
+    It is certainly still possible to mutate things, ex. default headers on the http session, but please avoid this.
+    """
+
+    async def handle_job(job: Job):
+        """Top level handler entry."""
+        logging.info("running job %s::%s", job.job_name, job.job_id)
+        if job.cmd_type == "HTTP":
+            return await handle_http(state.http, job)
+        logging.error("no such cmd type %s", job.cmd_type)
+        return
+
+    return handle_job
 
 
 async def init() -> tuple[State, JobHandler]:
