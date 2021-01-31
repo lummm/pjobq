@@ -23,6 +23,12 @@ class CronJob(Job):
 
 
 @dataclass
+class AdhocJob(Job):
+    "job scheduled with cron syntax (ie. recurring)"
+    schedule_ts: float
+
+
+@dataclass
 class HttpJob(Job):
     "a job to be executed as an http request"
     method: str

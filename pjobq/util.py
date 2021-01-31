@@ -4,6 +4,9 @@ Misc utils
 
 import asyncio
 import logging
+import time
+from typing import Awaitable
+
 
 DEFAULT_WAILT_LIMIT_S = 128  # approx 2 mins
 
@@ -36,3 +39,8 @@ def setup_logging(level=logging.INFO) -> None:
         datefmt="%Y-%m-%d %H:%M:%S",
     )
     return
+
+
+async def delay_execution(awaitable: Awaitable, until: float) -> Awaitable:
+    await asyncio.sleep(until - time.time())
+    return await awaitable
