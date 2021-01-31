@@ -12,6 +12,17 @@ import asyncpg  # type: ignore
 from ..apptypes import DBCon, PgNotifyListener
 from ..env import ENV
 from .interface import DB
+from . import sql
+
+
+INIT_SQL = [
+    # note all things here must be idempotent,
+    # as they are run every time we init
+    sql.EXTENSION_UUID,
+    sql.TABLE_CRON_JOB,
+    sql.FN_CRON_JOB_CREATE,
+    sql.FN_CRON_JOB_CREATE_HTTP,
+]
 
 
 class DBImpl(DB):
@@ -24,6 +35,8 @@ class DBImpl(DB):
             database=ENV.PGDB,
             host=ENV.PGHOST,
         )
+        for cmds in INIT_SQL:
+            await self.con.execute(cmds)
         return
 
     async def add_pg_notify_listener(
