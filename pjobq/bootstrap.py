@@ -44,9 +44,9 @@ async def run_cron_job_loop(
     handler: JobHandler,
 ) -> None:
     """
-    Proceeding with a very naive implementation until some performance testing is done.
-    Literally sleep every second and check if we are at the top of a minute (cron is up to the minute).
-    If so, we check our known list of cron_jobs to see if any must be run.
+    Since cron resolution is up to the minute, we poll every minute over our
+    known cron schedules, adjusting the time we use to perform the cron check
+    to be the top of the minute.
     """
     while True:
         await asyncio.sleep(60)

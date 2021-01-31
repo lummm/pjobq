@@ -13,10 +13,11 @@ class TestCron(unittest.TestCase):
 
     def test_run_scheduled_cron_jobs(self):
         jobs = [cron_job()] * 10
-        hack_pycron_is_now(lambda x: True)
+        hack_pycron_is_now(lambda x, y: True)
         mock_event_loop.create_task = MagicMock()
         handler = MagicMock()
         cron.run_scheduled_cron_jobs(
+            dt=None,
             loop=mock_event_loop,
             cron_jobs=jobs,
             handler=handler
