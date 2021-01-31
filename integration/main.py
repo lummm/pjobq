@@ -50,13 +50,26 @@ async def start_test_http_server(req_q: asyncio.Queue):
     return
 
 
+async def run_test(test_env, test):
+    print("running", test)
+    await test_env.cleanup()
+    await test(test_env)
+    print("SUCCESS!", test)
+    return
+
+
 async def run_tests(req_q: asyncio.Queue):
     test_env = await tests.TestEnv.init(req_q = req_q)
+    cmd_line_test_fn = os.environ.get("TEST_FN", None)
     try:
-        for test in tests.TESTS:
-            print("running", test)
-            await test_env.cleanup()
-            await test(test_env)
+        if cmd_line_test_fn:    # only run the one test
+            print("running single test fn", cmd_line_test_fn)
+            fn = [test for test in tests.TESTS
+                  if test.__name__ == cmd_line_test_fn][0]
+            await run_test(test_env, fn)
+            return
+        for test in tests.TESTS: # o/w run all the tests
+            await run_test(test_env, test)
     except Exception as e:
         await debug_failure(test_env)
         # must bring down whole loop
