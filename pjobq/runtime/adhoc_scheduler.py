@@ -14,7 +14,7 @@ from ..apptypes import AdhocJob, JobHandler
 from ..util import delay_execution
 
 
-class JobScheduler:
+class AdhocScheduler:
     """
     Cache of jobs to run in the future.
     This is maintained as a dict of asyncio tasks, indexed by job id.
@@ -24,9 +24,9 @@ class JobScheduler:
 
     scheduled: dict[str, Task]
 
-    def __init__(self):
+    async def init(self):
         self.scheduled = {}
-        return
+        return self
 
     def schedule_jobs(
         self,

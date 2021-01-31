@@ -14,23 +14,27 @@ from .. import constants as constants
 from ..models import CronJobModelImpl, CronJobModel, AdhocJobModel, AdhocJobModelImpl
 from ..db import DBImpl, DB
 from ..apphttp import AppHttp, AppHttpImpl
-from .job_scheduler import JobScheduler
 from ..constants import ADHOC_JOB_INTERVAL_S
+from .adhoc_scheduler import AdhocScheduler
+from .cron_scheduler import CronScheduler
 
 
 class State:
     """
     db: database interface
+    cron_model: interface to cron_job table
+    adhoc_model: interface to adhoc_job table
     cron_jobs: all known cron_jobs
+    adhoc_scheduler: adhoc job scheduling service
     """
 
-    http: AppHttp
     db: DB
     cron_model: type[CronJobModel]
     adhoc_model: type[AdhocJobModel]
-    cron_jobs: list[CronJob]
-    scheduler: JobScheduler
+    http: AppHttp
     loop: asyncio.AbstractEventLoop
+    adhoc_scheduler: AdhocScheduler
+    cron_scheduler: AdhocScheduler
 
     async def init(
         self,
@@ -42,50 +46,13 @@ class State:
     ) -> None:
         self.loop = loop
         await db.init()
+        self.db = db
         await http.init()
         self.http = http
-        self.db = db
         self.cron_model = cron_model
         self.adhoc_model = adhoc_model
-        self.cron_jobs = []
-        await self.reload_cron_jobs()
-        await self.register_notify_cbs(constants.CRON_NOTIFY_CHANNEL)
-        self.scheduler = JobScheduler()
-        return
-
-    def schedule_adhoc_jobs(
-        self,
-        jobs: list[AdhocJob],
-        handler: JobHandler,
-    ) -> None:
-        "load the next window of adhoc jobs"
-        self.scheduler.schedule_jobs(self.loop, jobs, handler)
-        return
-
-    async def reload_cron_jobs(self) -> None:
-        "relaod all cron jobs"
-        logging.info("reloading cron jobs")
-        self.cron_jobs = await self.cron_model.get_all(self.db)
-        return
-
-    async def register_notify_cbs(self, channel: NotifyChannel) -> None:
-        "register all callbacks for a certain channel"
-        for cb in self.get_pg_notify_listeners(channel):
-            await self.db.add_pg_notify_listener(channel, cb)
-        return
-
-    def get_pg_notify_listeners(self, channel: str) -> list[PgNotifyListener]:
-        "get all listeners we want to register for a given channel"
-        if channel == constants.CRON_NOTIFY_CHANNEL:
-            return [self.on_cron_table_notify]
-        empty: list[PgNotifyListener] = []
-        return empty
-
-    async def on_cron_table_notify(self, payload: str) -> None:
-        "handler for pg_notify called for cron topic"
-        if payload == constants.NOTIFY_UPDATE_CMD:
-            return await self.reload_cron_jobs()
-        logging.error("unknown cron notify payload -> %s", payload)
+        self.adhoc_scheduler = await AdhocScheduler().init()
+        self.cron_scheduler = await CronScheduler().init(self.db, self.cron_model)
         return
 
 

@@ -47,7 +47,7 @@ async def run_adhoc_job_event_loop(state: State, handler: JobHandler) -> None:
         end_time = start_time + ADHOC_JOB_INTERVAL_S
         jobs = await state.adhoc_model.get_all_in_range(state.db, start_time, end_time)
         logging.debug("loaded %s new adhoc jobs", len(jobs))
-        state.schedule_adhoc_jobs(jobs, handler)
+        state.adhoc_scheduler.schedule_jobs(state.loop, jobs, handler)
         await asyncio.sleep(ADHOC_JOB_INTERVAL_S)
     return
 
