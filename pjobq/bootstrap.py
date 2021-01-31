@@ -35,7 +35,8 @@ def handle_job_factory(state: State) -> JobHandler:
 
 async def init() -> tuple[State, JobHandler]:
     "initialize the applciation, with retry"
-    state = await attempt_forever("pjobq init", default_init)
+    loop = asyncio.get_event_loop()
+    state = await attempt_forever("pjobq init", lambda: default_init(loop))
     return (state, handle_job_factory(state))
 
 
@@ -47,15 +48,20 @@ async def run_cron_job_loop(
     Since cron resolution is up to the minute, we poll every minute over our
     known cron schedules, adjusting the time we use to perform the cron check
     to be the top of the minute.
+
+    Theoretically, since there is non-zero execution time outside of the
+    `sleep`, we will slowly be losing time on our counter.
+    TODO: implement a periodic re-sync of the clock to the top of the minute
     """
     while True:
         await asyncio.sleep(60)
         dt = datetime.now().replace(second=0, microsecond=0)
-        run_scheduled_cron_jobs(
-            loop=state.loop,
-            dt=dt,
-            cron_jobs=state.cron_scheduler.cron_jobs,
-            handler=handler,
+        state.loop.create_task(
+            run_scheduled_cron_jobs(
+                dt=dt,
+                cron_jobs=state.cron_scheduler.cron_jobs,
+                handler=handler,
+            )
         )
     return
 
@@ -81,13 +87,10 @@ async def run_application() -> None:
     setup_logging(ENV.LOG_LEVEL)
     state, handler = await init()
     try:
-        await asyncio.gather(
-            *[
-                run_cron_job_loop(state, handler),
-                run_adhoc_job_event_loop(state, handler),
-            ]
-        )
-
+        t1 = state.loop.create_task(run_cron_job_loop(state, handler))
+        t2 = state.loop.create_task(run_adhoc_job_event_loop(state, handler))
+        await t1
+        await t2
     except Exception as e:
         logging.exception(e)
         state, handler = await init()

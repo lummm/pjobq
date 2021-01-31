@@ -44,7 +44,8 @@ async def start_test_http_server(req_q: asyncio.Queue):
     app.add_routes([web.post("/", base_handler)])
     runner = web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, '127.0.0.1', TEST_SERVER_PORT)
+    site = web.TCPSite(runner, '0.0.0.0', TEST_SERVER_PORT)
+    print("starting test server...")
     await site.start()
     return
 
@@ -53,6 +54,7 @@ async def run_tests(req_q: asyncio.Queue):
     test_env = await tests.TestEnv.init(req_q = req_q)
     try:
         for test in tests.TESTS:
+            print("running", test)
             await test_env.cleanup()
             await test(test_env)
     except Exception as e:

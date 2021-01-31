@@ -17,10 +17,7 @@ from .job_conversion import as_http_job
 async def handle_http(http: AppHttp, generic_job: Job) -> None:
     "handle an http job"
     job: HttpJob = as_http_job(generic_job)
-    req_args = {}
-    if job.body:
-        req_args["body"] = job.body
-    res_status = await http.req(job.method, job.url, **req_args)
+    res_status = await http.req(job.method, job.url, data=job.body)
     logging.debug("job %s::%s http req status %s", job.job_name, job.job_id, res_status)
     if res_status != 200:
         logging.error(

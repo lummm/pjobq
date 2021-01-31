@@ -14,11 +14,11 @@ from .state import State
 
 
 async def init(
+    loop: asyncio.AbstractEventLoop,
     db=DBImpl(),
     cron_model=CronJobModelImpl,
     adhoc_model=AdhocJobModelImpl,
     http=AppHttpImpl(),
-    loop=asyncio.get_event_loop(),
 ) -> State:
     state = State(
         db=db,
@@ -36,5 +36,5 @@ async def init(
     return state
 
 
-async def default_init() -> State:
-    return await init()
+async def default_init(loop: asyncio.AbstractEventLoop) -> State:
+    return await init(loop)

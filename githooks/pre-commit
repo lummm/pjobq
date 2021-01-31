@@ -10,7 +10,7 @@ BLACK_DIFF=$(python3 -m black pjobq --diff -q)
 if [[ "${BLACK_DIFF}" != "" ]]; then
     python3 -m black pjobq
     echo "please stage and commit formatting changes"
-    echo "\nCOMMIT NOT SUCCESS\n"
+    printf "\nCOMMIT NOT SUCCESS\n"
     exit 1
 fi
 

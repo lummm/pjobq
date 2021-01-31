@@ -1,6 +1,7 @@
 version: "3.9"
 services:
   pjobq:
+    hostname: pbjoq
     image: pjobq
     environment:
       - LOG_LEVEL
@@ -10,6 +11,7 @@ services:
       - PGPASSWORD
 
   db:
+    hostname: db
     image: postgres:13.1
     ports:
       - 5432:5432
@@ -20,7 +22,8 @@ services:
     volumes:
     - db_data:/var/lib/postgresql/data
 
-  pjobq-it-test:
+  test:
+    hostname: test
     image: pjobq-it-test
     ports:
       - ${TEST_SERVER_PORT}:${TEST_SERVER_PORT}

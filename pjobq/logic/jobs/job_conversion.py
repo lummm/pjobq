@@ -16,7 +16,7 @@ def as_http_job(job: Job) -> HttpJob:
         **{
             "method": req_args["method"],
             "url": req_args["url"],
-            "body": getattr(req_args, "body", None),
+            "body": req_args.get("body", None),
         }
     )  # type: ignore
 

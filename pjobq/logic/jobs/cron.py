@@ -11,17 +11,16 @@ import pycron  # type: ignore
 from ...apptypes import JobHandler, CronJob
 
 
-def run_scheduled_cron_jobs(
+async def run_scheduled_cron_jobs(
     *,
-    loop: asyncio.AbstractEventLoop,
     cron_jobs: list[CronJob],
     handler: JobHandler,
     dt: datetime = None,
 ):
-    "iterate cron jobs to see if any must be run"
-    for job in cron_jobs:
-        if pycron.is_now(job.cron_schedule, dt):
-            # it is important to create a task here and proceed to processing
-            # the other jobs
-            loop.create_task(handler(job))
+    """
+    Iterate cron jobs to see if any must be run.
+    This should be done in its own task.
+    """
+    to_run = [job for job in cron_jobs if pycron.is_now(job.cron_schedule, dt)]
+    await asyncio.gather(*[handler(job) for job in to_run])
     return

@@ -16,8 +16,9 @@ class AppHttpImpl(AppHttp):
         self.session = aiohttp.ClientSession()
         return
 
-    async def req(self, method: str, url: str, **kwargs) -> int:
-        async with self.session.request(method, url, **kwargs) as res:
+    async def req(self, method: str, url: str, data: str = "") -> int:
+        logging.debug("http req %s %s", method, url)
+        async with self.session.request(method, url, data=data) as res:
             if not res.ok:
                 logging.error("http request %s %s failed", method, url)
             return res.status

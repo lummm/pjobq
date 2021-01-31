@@ -12,7 +12,7 @@ import asyncpg
 
 DEFAULT_REQ_TIMEOUT_S = 10
 
-TEST_URL = "http://pjobq-it-test:8888/"
+TEST_URL = "http://test:8888/"
 
 
 def fail():
@@ -58,6 +58,7 @@ class TestEnv:
     async def create_cron_job(
             self,
             schedule: str,
+            *,
             payload: str,
             name: str,
     ):

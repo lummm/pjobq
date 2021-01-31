@@ -10,6 +10,6 @@ class AppHttp(ABC):
         pass
 
     @abstractmethod
-    async def req(self, method: str, url: str, **kwargs) -> int:
+    async def req(self, method: str, url: str, data: str) -> int:
         "Perform a request, returning the status code."
         pass
