@@ -18,7 +18,6 @@ class TestCron(unittest.TestCase):
         handler = MagicMock()
         cron.run_scheduled_cron_jobs(
             dt=None,
-            loop=mock_event_loop,
             cron_jobs=jobs,
             handler=handler
         )
