@@ -1,6 +1,8 @@
-async def test1(t):
-    t.assert_eq(2, 2)
+async def every_minute_test(t):
+    await t.create_cron_job("* * * * *", "test-job", "payload1")
+    req = await t.wait_next_req(62) # should occur within a min
+    t.assert_eq(req, "payload1")
     return
 
 
-TESTS = [test1]
+TESTS = [every_minute_test]

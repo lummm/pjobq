@@ -32,7 +32,7 @@ async def init(
     await state.db.init()
     await state.http.init()
     await state.adhoc_scheduler.init(state.db, state.adhoc_model)
-    await state.cron_scheduler.init(state.db, state.cron_model)
+    await state.cron_scheduler.init(state.db, state.cron_model, loop)
     return state
 
 

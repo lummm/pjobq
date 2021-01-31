@@ -20,11 +20,15 @@ class CronScheduler:
     db: DB
     cron_model: type[CronJobModel]
     cron_jobs: list[CronJob]
+    loop: asyncio.AbstractEventLoop
 
-    async def init(self, db: DB, cron_model: type[CronJobModel]):
+    async def init(
+        self, db: DB, cron_model: type[CronJobModel], loop: asyncio.AbstractEventLoop
+    ):
         self.db = db
         self.cron_model = cron_model
         self.cron_jobs = []
+        self.loop = loop
         await self.db.add_pg_notify_listener(
             CRON_NOTIFY_CHANNEL, self.on_cron_table_notify
         )
@@ -33,13 +37,17 @@ class CronScheduler:
 
     async def reload_cron_jobs(self) -> None:
         "relaod all cron jobs"
-        logging.info("reloading cron jobs")
         self.cron_jobs = await self.cron_model.get_all(self.db)
+        logging.info("loaded %s cron jobs", len(self.cron_jobs))
         return
 
-    async def on_cron_table_notify(self, payload: str) -> None:
-        "handler for pg_notify called for cron topic"
+    def on_cron_table_notify(self, payload: str) -> None:
+        """
+        Handler for pg_notify called for cron topic.
+        Because this is sync, we need to create a task
+        """
         if payload == NOTIFY_UPDATE_CMD:
-            return await self.reload_cron_jobs()
+            self.loop.create_task(self.reload_cron_jobs())
+            return
         logging.error("unknown cron notify payload -> %s", payload)
         return

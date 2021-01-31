@@ -1,4 +1,6 @@
+venv/
 .git/
+.mypy_cache/
 
 __pycache__/
 *.py[cod]

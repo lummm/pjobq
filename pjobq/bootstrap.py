@@ -49,13 +49,14 @@ async def run_cron_job_loop(
     If so, we check our known list of cron_jobs to see if any must be run.
     """
     while True:
-        await asyncio.sleep(1)
-        if datetime.now().second == 0:
-            run_scheduled_cron_jobs(
-                loop=state.loop,
-                cron_jobs=state.cron_scheduler.cron_jobs,
-                handler=handler,
-            )
+        await asyncio.sleep(60)
+        dt = datetime.now().replace(second=0, microsecond=0)
+        run_scheduled_cron_jobs(
+            loop=state.loop,
+            dt=dt,
+            cron_jobs=state.cron_scheduler.cron_jobs,
+            handler=handler,
+        )
     return
 
 

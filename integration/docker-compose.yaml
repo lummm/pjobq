@@ -11,6 +11,8 @@ services:
 
   db:
     image: postgres:13.1
+    ports:
+      - 5432:5432
     environment:
       - POSTGRES_USER=${PGUSER}
       - POSTGRES_PASSWORD=${PGPASSWORD}
@@ -18,6 +20,19 @@ services:
     volumes:
     - db_data:/var/lib/postgresql/data
 
+  pjobq-it-test:
+    image: pjobq-it-test
+    ports:
+      - ${TEST_SERVER_PORT}:${TEST_SERVER_PORT}
+    environment:
+      - LOG_LEVEL
+      - PGDB
+      - PGHOST
+      - PGUSER
+      - PGPASSWORD
+    depends_on:
+      - db
+      - pjobq
 
 volumes:
   db_data:

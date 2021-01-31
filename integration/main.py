@@ -2,21 +2,33 @@
 
 """
 This is the entry point to run integration tests from.
-At the moment, it expects the docker-compose system to be running,
-and to have a clean DB at outset.
-TODO: startup the docker-compose system from within this script.
+This should execute inside the system defined by the docker-compose file.
 
 We spin up a test http server which our jobs will make requests to.
 """
 
 import asyncio
+import os
+from pprint import pformat
 
 from aiohttp import web
 
 import tests
 
 
-TEST_SERVER_PORT = 8888
+TEST_SERVER_PORT = int(os.environ.get("TEST_SERVER_PORT", "8888"))
+
+
+async def debug_failure(test_env):
+    cron_jobs = await test_env.fetch("""
+    SELECT * FROM cron_job;
+    """)
+    adhoc_jobs = await test_env.fetch("""
+    SELECT * FROM adhoc_job;
+    """)
+    print("cron jobs:\n", pformat(cron_jobs))
+    print("adhoc jobs:\n", pformat(adhoc_jobs))
+    return
 
 
 async def start_test_http_server(req_q: asyncio.Queue):
@@ -32,15 +44,23 @@ async def start_test_http_server(req_q: asyncio.Queue):
     app.add_routes([web.post("/", base_handler)])
     runner = web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, 'localhost', TEST_SERVER_PORT)
+    site = web.TCPSite(runner, '127.0.0.1', TEST_SERVER_PORT)
     await site.start()
     return
 
 
 async def run_tests(req_q: asyncio.Queue):
-    test_env = tests.TestEnv(req_q = req_q)
-    for test in tests.TESTS:
-        await test(test_env)
+    test_env = await tests.TestEnv.init(req_q = req_q)
+    try:
+        for test in tests.TESTS:
+            await test_env.cleanup()
+            await test(test_env)
+    except Exception as e:
+        await debug_failure(test_env)
+        # must bring down whole loop
+        loop = asyncio.get_event_loop()
+        loop.stop()
+        raise(e)
     return
 
 
