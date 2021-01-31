@@ -6,7 +6,6 @@
 
 
 * next steps
-- adhoc scheduler
-- failure notifications
+- failure notifications?
 
 - do perf tests with large numbers of re-ocurring tasks.  Is performance OK just iterating the whole list every minute?

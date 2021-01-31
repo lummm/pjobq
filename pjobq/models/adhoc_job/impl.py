@@ -4,7 +4,7 @@ from ...db import DB
 from ...db import get_data_class_convertor
 
 
-cron_job_converter = get_data_class_convertor(AdhocJob)
+adhoc_job_converter = get_data_class_convertor(AdhocJob)
 
 
 class AdhocJobModelImpl(AdhocJobModel):

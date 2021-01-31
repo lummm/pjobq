@@ -36,9 +36,9 @@ class JobScheduler:
     ) -> None:
         "purely additive for the moment"
         for job in jobs:
-            if job.id in self.scheduled:
-                self.scheduled[job.id].cancel()
-            self.scheduled[job.id] = loop.create_task(
+            if job.job_id in self.scheduled:
+                self.scheduled[job.job_id].cancel()
+            self.scheduled[job.job_id] = loop.create_task(
                 delay_execution(handler(job), job.schedule_ts)
             )
         return

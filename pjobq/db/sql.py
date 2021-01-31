@@ -132,8 +132,7 @@ CREATE TABLE IF NOT EXISTS adhoc_job (
     CHECK (check_cmd_type(cmd_type)),
   cmd_payload  TEXT  NOT NULL,
 
-  PRIMARY KEY (job_id),
-  UNIQUE (job_name)
+  PRIMARY KEY (job_id)
 );
 
 COMMENT ON TABLE adhoc_job IS 'Adhoc jobs specified at a specific time.';
@@ -185,7 +184,7 @@ LANGUAGE plpgsql
 
 
 FN_ADHOC_JOB_CREATE_HTTP = """
-CREATE OR REPLACE FUNCTION cron_job_create_http(
+CREATE OR REPLACE FUNCTION adhoc_job_create_http(
   IN p_schedule_ts  adhoc_job.schedule_ts%TYPE,
   IN p_job_name  cron_job.job_name%TYPE,
   IN p_http_method  TEXT,
