@@ -24,3 +24,6 @@ postgres - with uuid-ossp:
 AWS postgres supports "uuid-ossp", and this is generally my target host.  This dependency could be worked around if extension installation is a problem.
 
 python - see [requirements.txt](requirements.txt).
+
+# More details
+See [architecture](notes/architecture.md).
