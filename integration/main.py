@@ -13,6 +13,11 @@ import asyncio
 
 from aiohttp import web
 
+import tests
+
+
+TEST_SERVER_PORT = 8888
+
 
 async def start_test_http_server(req_q: asyncio.Queue):
     """
@@ -27,15 +32,15 @@ async def start_test_http_server(req_q: asyncio.Queue):
     app.add_routes([web.post("/", base_handler)])
     runner = web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, 'localhost', 8080)
+    site = web.TCPSite(runner, 'localhost', TEST_SERVER_PORT)
     await site.start()
     return
 
 
 async def run_tests(req_q: asyncio.Queue):
-    async def wait_next_req():
-        return await req_q.get()
-    # do tests here...
+    test_env = tests.TestEnv(req_q = req_q)
+    for test in tests.TESTS:
+        await test(test_env)
     return
 
 
