@@ -3,6 +3,28 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 """
 
 
+FN_CHECK_CMD_TYPE = """
+CREATE OR REPLACE FUNCTION check_cmd_type(
+  IN p_cmd_type  TEXT
+)
+RETURNS BOOLEAN
+AS $$
+BEGIN
+  IF NOT (p_cmd_type = 'HTTP' OR
+          p_cmd_type = 'EZ')
+  THEN
+    RAISE EXCEPTION 'invalid cmd_type -> %', p_cmd_type;
+  END IF;
+  RETURN TRUE;
+END;
+$$
+LANGUAGE plpgsql
+IMMUTABLE
+;
+
+"""
+
+
 TABLE_CRON_JOB = """
 CREATE TABLE IF NOT EXISTS cron_job (
   job_id  UUID   NOT NULL  DEFAULT uuid_generate_v1mc(),
@@ -11,7 +33,8 @@ CREATE TABLE IF NOT EXISTS cron_job (
   enabled BOOLEAN  NOT NULL  DEFAULT TRUE,
   job_name  TEXT  NOT NULL,
   cron_schedule  TEXT  NOT NULL,
-  cmd_type  TEXT  NOT NULL,
+  cmd_type  TEXT  NOT NULL
+    CHECK (check_cmd_type(cmd_type)),
   cmd_payload  TEXT  NOT NULL,
 
   PRIMARY KEY (job_id),
@@ -43,11 +66,6 @@ AS $$
 DECLARE
   v_job_id  UUID  := uuid_generate_v1mc();
 BEGIN
-  IF NOT (p_cmd_type = 'HTTP' OR
-          p_cmd_type = 'EZ')
-  THEN
-    RAISE EXCEPTION 'invalid cmd_type -> %', p_cmd_type;
-  END IF;
   INSERT INTO cron_job (
                 job_id,
                 job_name,
@@ -90,6 +108,96 @@ BEGIN
     p_cron_schedule => p_cron_schedule,
     p_job_name => p_job_name,
     p_enabled => p_enabled,
+    p_cmd_type => 'HTTP',
+    p_cmd_payload => jsonb_build_object(
+      'method', p_http_method,
+      'url', p_url,
+      'body', p_body
+    )::TEXT
+  );
+END;
+$$
+LANGUAGE plpgsql
+;
+"""
+
+TABLE_ADHOC_JOB = """
+CREATE TABLE IF NOT EXISTS adhoc_job (
+  job_id  UUID   NOT NULL  DEFAULT uuid_generate_v1mc(),
+  created  TIMESTAMPTZ  NOT NULL  DEFAULT now(),
+  updated  TIMESTAMPTZ  NOT NULL  DEFAULT now(),
+  job_name  TEXT  NOT NULL,
+  schedule_ts  TIMESTAMPTZ  NOT NULL,
+  cmd_type  TEXT  NOT NULL
+    CHECK (check_cmd_type(cmd_type)),
+  cmd_payload  TEXT  NOT NULL,
+
+  PRIMARY KEY (job_id),
+  UNIQUE (job_name)
+);
+
+COMMENT ON TABLE adhoc_job IS 'Adhoc jobs specified at a specific time.';
+COMMENT ON COLUMN adhoc_job.job_id IS 'Unique job ID.';
+COMMENT ON COLUMN adhoc_job.created IS 'Time job created';
+COMMENT ON COLUMN adhoc_job.updated IS 'Time job last updated';
+COMMENT ON COLUMN adhoc_job.job_name IS 'Human readable name for job';
+COMMENT ON COLUMN adhoc_job.schedule_ts IS 'Time at which to run job.';
+COMMENT ON COLUMN adhoc_job.cmd_type IS 'Type of command.  "HTTP" or "EZ"';
+COMMENT ON COLUMN adhoc_job.cmd_payload IS 'Arguments for command.';
+"""
+
+
+FN_ADHOC_JOB_CREATE = """
+CREATE OR REPLACE FUNCTION adhoc_job_create(
+  IN p_schedule_ts  adhoc_job.schedule_ts%TYPE,
+  IN p_job_name  adhoc_job.job_name%TYPE,
+  IN p_cmd_type  adhoc_job.cmd_type%TYPE,
+  IN p_cmd_payload  adhoc_job.cmd_payload%TYPE
+)
+RETURNS UUID
+AS $$
+DECLARE
+  v_job_id  UUID  := uuid_generate_v1mc();
+BEGIN
+  INSERT INTO adhoc_job (
+                job_id,
+                job_name,
+                cmd_type,
+                cmd_payload,
+                schedule_ts
+              )
+       VALUES (
+                v_job_id,
+                p_job_name,
+                p_cmd_type,
+                p_cmd_payload,
+                p_schedule_ts
+              )
+              ;
+  PERFORM pg_notify('adhoc_job', 'update');
+  RETURN v_job_id;
+END;
+$$
+LANGUAGE plpgsql
+;
+
+"""
+
+
+FN_ADHOC_JOB_CREATE_HTTP = """
+CREATE OR REPLACE FUNCTION cron_job_create_http(
+  IN p_schedule_ts  adhoc_job.schedule_ts%TYPE,
+  IN p_job_name  cron_job.job_name%TYPE,
+  IN p_http_method  TEXT,
+  IN p_url  TEXT,
+  IN p_body  TEXT  DEFAULT ''
+)
+RETURNS UUID
+AS $$
+BEGIN
+  RETURN adhoc_job_create(
+    p_schedule_ts => p_schedule_ts,
+    p_job_name => p_job_name,
     p_cmd_type => 'HTTP',
     p_cmd_payload => jsonb_build_object(
       'method', p_http_method,

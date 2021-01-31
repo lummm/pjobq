@@ -19,6 +19,7 @@ class CronJobModelImpl(CronJobModel):
                cmd_type,
                cmd_payload
           FROM cron_job
+         WHERE enabled
         """
         rows = await db.fetch(sql)
         return [cron_job_converter(row) for row in rows]

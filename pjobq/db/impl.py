@@ -19,9 +19,13 @@ INIT_SQL = [
     # note all things here must be idempotent,
     # as they are run every time we init
     sql.EXTENSION_UUID,
+    sql.FN_CHECK_CMD_TYPE,
     sql.TABLE_CRON_JOB,
     sql.FN_CRON_JOB_CREATE,
     sql.FN_CRON_JOB_CREATE_HTTP,
+    sql.TABLE_ADHOC_JOB,
+    sql.FN_ADHOC_JOB_CREATE,
+    sql.FN_ADHOC_JOB_CREATE_HTTP,
 ]
 
 
