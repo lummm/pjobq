@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import logging
+from typing import Optional
 
 import aiohttp
 from .interface import AppHttp
@@ -16,7 +17,7 @@ class AppHttpImpl(AppHttp):
         self.session = aiohttp.ClientSession()
         return
 
-    async def req(self, method: str, url: str, data: str = "") -> int:
+    async def req(self, method: str, url: str, data: Optional[str] = "") -> int:
         logging.debug("http req %s %s", method, url)
         async with self.session.request(method, url, data=data) as res:
             if not res.ok:

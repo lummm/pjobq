@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Optional
 
 
 class AppHttp(ABC):
@@ -10,6 +11,6 @@ class AppHttp(ABC):
         pass
 
     @abstractmethod
-    async def req(self, method: str, url: str, data: str) -> int:
+    async def req(self, method: str, url: str, data: Optional[str]) -> int:
         "Perform a request, returning the status code."
         pass
