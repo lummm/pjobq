@@ -8,18 +8,16 @@ import logging
 import time
 
 from .apptypes import JobHandler, Job
-from .runtime import State, default_init
+from .state import State, default_init
 from .constants import ADHOC_JOB_INTERVAL_S, ADHOC_NOTIFY_CHANNEL, NOTIFY_UPDATE_CMD
 from .env import ENV
 from .logic.jobs import handle_http, run_scheduled_cron_jobs, schedule_adhoc_jobs
-from .util import attempt_forever, setup_logging
+from .util import attempt_forever, setup_logging, create_unfailing_task
 
 
 def handle_job_factory(state: State) -> JobHandler:
     """
-    Close over state here to promote a more functional approach at
-    the logic level. (ie. don't mutate the state).
-    It is certainly still possible to mutate things, ex. default headers on the http session, but please avoid this.
+    Close over state here to promote a more functional approach at the logic level.
     """
 
     async def handle_job(job: Job):
@@ -56,17 +54,19 @@ async def run_cron_job_loop(
     while True:
         await asyncio.sleep(60)
         dt = datetime.now().replace(second=0, microsecond=0)
-        state.loop.create_task(
+        create_unfailing_task(
+            "run cron jobs",
+            state.loop,
             run_scheduled_cron_jobs(
                 dt=dt,
                 cron_jobs=state.cron_scheduler.cron_jobs,
                 handler=handler,
-            )
+            ),
         )
     return
 
 
-async def run_adhoc_job_event_loop(state: State, handler: JobHandler) -> None:
+async def run_adhoc_job_loop(state: State, handler: JobHandler) -> None:
     """
     Maintain a list of jobs to be scheduled in a window of ADHOC_JOB_INTERVAL_S
     into the future.
@@ -91,7 +91,7 @@ async def run_adhoc_job_event_loop(state: State, handler: JobHandler) -> None:
     def on_adhoc_job_table_notify(payload: str):
         """Handle updates to the adhoc_job table"""
         if payload == NOTIFY_UPDATE_CMD:
-            state.loop.create_task(reload_window_jobs())
+            create_unfailing_task("reload adhoc jobs", state.loop, reload_window_jobs())
         return
 
     await state.db.add_pg_notify_listener(
@@ -114,12 +114,13 @@ async def run_application() -> None:
     """
     setup_logging(ENV.LOG_LEVEL)
     state, handler = await init()
-    try:
-        t1 = state.loop.create_task(run_cron_job_loop(state, handler))
-        t2 = state.loop.create_task(run_adhoc_job_event_loop(state, handler))
-        await t1
-        await t2
-    except Exception as e:
-        logging.exception(e)
-        state, handler = await init()
+    for task in [
+        create_unfailing_task(
+            "cron job loop", state.loop, run_cron_job_loop(state, handler)
+        ),
+        create_unfailing_task(
+            "adhoc job loop", state.loop, run_adhoc_job_loop(state, handler)
+        ),
+    ]:
+        await task
     return

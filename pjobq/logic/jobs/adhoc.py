@@ -9,7 +9,7 @@ import logging
 from ...apptypes import JobHandler, Job, AdhocJob
 from ...db import DB
 from ...models import AdhocJobModel
-from ...runtime import AdhocScheduler
+from ...state import AdhocScheduler
 from ...util import delay_execution
 
 

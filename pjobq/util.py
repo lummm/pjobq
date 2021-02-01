@@ -29,6 +29,25 @@ async def attempt_forever(
             attempt += 1
             current_wait = min([2 ** (attempt - 1), retry_wait_limit_s])
             logging.info("%s failure - try again in %s seconds", name, current_wait)
+    return
+
+
+def create_unfailing_task(
+    name: str, loop: asyncio.AbstractEventLoop, aw: Awaitable
+) -> asyncio.Task:
+    """
+    Prvents any errors in the task from bubbling up.
+    We log the exception but otherwise do nothing.
+    """
+
+    async def impl():
+        try:
+            await aw
+        except Exception as e:
+            logging.error("task '%s' failed", name)
+            logging.exception(e)
+
+    return asyncio.create_task(impl())
 
 
 def setup_logging(level=logging.INFO) -> None:
