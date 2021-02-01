@@ -80,11 +80,13 @@ async def run_tests(req_q: asyncio.Queue):
 
 
 async def main():
+    loop = asyncio.get_event_loop()
     req_q = asyncio.Queue()
-    await asyncio.gather(*[
-        start_test_http_server(req_q),
-        run_tests(req_q),
-    ])
+    for task in [
+            loop.create_task(start_test_http_server(req_q)),
+            loop.create_task(run_tests(req_q)),
+    ]:
+        await task
     return
 
 

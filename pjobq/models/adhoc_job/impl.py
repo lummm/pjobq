@@ -21,7 +21,7 @@ class AdhocJobModelImpl(AdhocJobModel):
         sql = """
         SELECT job_id,
                job_name,
-               EXTRACT(epoch FROM schedule_ts),
+               EXTRACT(epoch FROM schedule_ts) schedule_ts,
                cmd_type,
                cmd_payload
           FROM adhoc_job

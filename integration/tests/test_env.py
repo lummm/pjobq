@@ -95,7 +95,8 @@ class TestEnv:
           p_body => $4
         )
         """
-        return await self.execute(sql, [schedule, name, TEST_URL, payload])
+        res = await self.execute(sql, [ts, name, TEST_URL, payload])
+        return res
 
     async def cleanup(self):
         """

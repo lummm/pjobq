@@ -24,7 +24,7 @@ class AdhocScheduler:
 
     scheduled: dict[str, Task]
     db: DB
-    adhoc_job_model: type[AdhocJobModel]
+    adhoc_job_model: type[AdhocJobModel]  # can probably get rid of these
 
     async def init(
         self,

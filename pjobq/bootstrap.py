@@ -9,7 +9,7 @@ import time
 
 from .apptypes import JobHandler, Job
 from .runtime import State, default_init
-from .constants import ADHOC_JOB_INTERVAL_S
+from .constants import ADHOC_JOB_INTERVAL_S, ADHOC_NOTIFY_CHANNEL, NOTIFY_UPDATE_CMD
 from .env import ENV
 from .logic.jobs import handle_http, run_scheduled_cron_jobs, schedule_adhoc_jobs
 from .util import attempt_forever, setup_logging
@@ -67,19 +67,47 @@ async def run_cron_job_loop(
 
 
 async def run_adhoc_job_event_loop(state: State, handler: JobHandler) -> None:
+    """
+    Maintain a list of jobs to be scheduled in a window of ADHOC_JOB_INTERVAL_S
+    into the future.
+    Also listen for updates to the adhoc_jobs table in order to reload this list.
+    """
+    # our window of time
+    start_time = time.time()
+    end_time = start_time + ADHOC_JOB_INTERVAL_S
+
+    async def reload_window_jobs() -> None:
+        """Load all jobs in the window"""
+        jobs = await state.adhoc_model.get_all_in_range(state.db, start_time, end_time)
+        logging.debug(
+            "loaded %s adhoc jobs in window %s - %s",
+            len(jobs),
+            datetime.fromtimestamp(start_time).isoformat(),
+            datetime.fromtimestamp(end_time).isoformat(),
+        )
+        schedule_adhoc_jobs(state.adhoc_scheduler, state.loop, jobs, handler)
+        return
+
+    def on_adhoc_job_table_notify(payload: str):
+        """Handle updates to the adhoc_job table"""
+        if payload == NOTIFY_UPDATE_CMD:
+            state.loop.create_task(reload_window_jobs())
+        return
+
+    await state.db.add_pg_notify_listener(
+        ADHOC_NOTIFY_CHANNEL, on_adhoc_job_table_notify
+    )
     while True:
         start_time = time.time()
         end_time = start_time + ADHOC_JOB_INTERVAL_S
-        jobs = await state.adhoc_model.get_all_in_range(state.db, start_time, end_time)
-        logging.debug("loaded %s new adhoc jobs", len(jobs))
-        schedule_adhoc_jobs(state.adhoc_scheduler, state.loop, jobs, handler)
+        await reload_window_jobs()
         await asyncio.sleep(ADHOC_JOB_INTERVAL_S)
     return
 
 
 async def run_application() -> None:
     """
-    The highest level handler.
+    The highest level function.
     Briefly: we maintain a list of known cron jobs in State.cron_jobs.
     Postgres should notify us when the state of stored cron jobs changes,
     at which point we update our list of jobs in-memory to match.
