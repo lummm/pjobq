@@ -3,8 +3,9 @@ pjobq is a python library to define a dynamic job scheduler, in conjunction with
 
 # Components
 
-cron-style scheduler:
-Define the DB table [cron_job](db/cron_job.sql) and corresponding functions to create recurring jobs with cron syntax.
+The DB table *cron_job* is defined to create recurring jobs with cron syntax.
+The DB table *adhoc_job* is defined to create one-time jobs with a specific timestamp.
+These tables, as well as related functions, are created by the application: see [sql.py](pjobq/db/sql.py).
 
 
 # Usage
