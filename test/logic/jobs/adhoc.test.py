@@ -1,12 +1,15 @@
+import asyncio
 import json
+import time
 import unittest
 from unittest import IsolatedAsyncioTestCase
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, MagicMock
 
+from pjobq.state.adhoc_scheduler import AdhocScheduler
 import pjobq.logic.jobs.adhoc as adhoc
 
-from testutils.fixtures import http_job
-from testutils.mocks import mock_event_loop, mock_adhoc_job_model, mock_db
+from testutils.fixtures import http_job, adhoc_job
+from testutils.mocks import mock_event_loop, mock_adhoc_job_model, mock_db, mock_adhoc_scheduler
 
 
 class TestAdhoc(IsolatedAsyncioTestCase):
@@ -23,6 +26,30 @@ class TestAdhoc(IsolatedAsyncioTestCase):
         handler.assert_called_with(job)
         mock_adhoc_job_model.set_job_completed \
             .assert_called_with(mock_db, job.job_id)
+        return
+
+    async def test_schedule_adhoc_jobs(self):
+        loop = asyncio.get_event_loop()
+        scheduler_state = await mock_adhoc_scheduler()
+        now = time.time()
+        handler = AsyncMock()
+        spacing = 0.01
+        jobs = [
+            adhoc_job(
+                "job" + str(now + (i * spacing)),
+                now + (i * spacing)
+            )
+            for i in range(1, 5)
+        ]
+        adhoc.schedule_adhoc_jobs(
+            scheduler_state,
+            loop,
+            jobs,
+            handler,
+        )
+        for i in range(1, 5):
+            await asyncio.sleep(spacing)
+            handler.assert_called_with(jobs[i - 1])
         return
 
 

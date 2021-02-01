@@ -1,6 +1,7 @@
 from unittest.mock import AsyncMock, MagicMock
 
 from pjobq.apphttp import AppHttp
+from pjobq.state.adhoc_scheduler import AdhocScheduler
 from pjobq.db import DB
 from pjobq.models import AdhocJobModel
 
@@ -40,3 +41,11 @@ AdhocJobModel.register(MockAdhocJobModel)
 mock_adhoc_job_model = MockAdhocJobModel()
 mock_adhoc_job_model.get_all_in_range = AsyncMock()
 mock_adhoc_job_model.set_job_completed = AsyncMock()
+
+
+async def mock_adhoc_scheduler():
+    scheduler = AdhocScheduler()
+    return await scheduler.init(
+        mock_db,
+        mock_adhoc_job_model,
+    )

@@ -9,7 +9,7 @@ from ...apptypes import JobHandler, Job, AdhocJob
 from ...db import DB
 from ...models import AdhocJobModel
 from ...state import AdhocScheduler
-from ...util import delay_execution
+from ...util import delay_execution, create_unfailing_task
 
 
 async def run_adhoc_job(
@@ -40,7 +40,7 @@ def schedule_adhoc_jobs(
         job_exec_awaitable = run_adhoc_job(
             scheduler.db, scheduler.adhoc_job_model, handler, job
         )
-        scheduler.scheduled[job.job_id] = loop.create_task(
-            delay_execution(job_exec_awaitable, job.schedule_ts)
+        scheduler.scheduled[job.job_id] = create_unfailing_task(
+            job.job_id, loop, delay_execution(job_exec_awaitable, job.schedule_ts)
         )
     return

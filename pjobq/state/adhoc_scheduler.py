@@ -4,6 +4,8 @@ We try to keep the cache small, because if this process were to die,
 we would lose all the cached jobs.
 However, we must query the adhoc_jobs table at the same interval as our cache,
 so it cannot be arbitrarily small.
+
+TODO: name this class better, as it's really a state container, so something like AdhocSchedulerState
 """
 
 import asyncio

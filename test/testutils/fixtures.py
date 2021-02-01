@@ -1,5 +1,7 @@
 import json
-from pjobq.apptypes import Job, CronJob, HttpJob
+import time
+
+from pjobq.apptypes import Job, CronJob, HttpJob, AdhocJob
 
 
 http_get_payload = lambda: json.dumps({
@@ -19,7 +21,17 @@ cron_job = lambda: CronJob(
     cmd_payload=http_get_payload(),
     cron_schedule="* * * * *",
 )
-
+def adhoc_job(
+        job_id = "an-id",
+        schedule_ts = time.time()
+):
+    return AdhocJob(
+        job_id=job_id,
+        job_name="a-name",
+        cmd_type="HTTP",
+        cmd_payload=http_get_payload(),
+        schedule_ts=schedule_ts,
+    )
 http_job = lambda: HttpJob(
     job_id="an-id",
     job_name="a-name",
