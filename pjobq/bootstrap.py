@@ -11,7 +11,7 @@ from .apptypes import JobHandler, Job
 from .runtime import State, default_init
 from .constants import ADHOC_JOB_INTERVAL_S
 from .env import ENV
-from .logic.jobs import handle_http, run_scheduled_cron_jobs
+from .logic.jobs import handle_http, run_scheduled_cron_jobs, schedule_adhoc_jobs
 from .util import attempt_forever, setup_logging
 
 
@@ -72,7 +72,7 @@ async def run_adhoc_job_event_loop(state: State, handler: JobHandler) -> None:
         end_time = start_time + ADHOC_JOB_INTERVAL_S
         jobs = await state.adhoc_model.get_all_in_range(state.db, start_time, end_time)
         logging.debug("loaded %s new adhoc jobs", len(jobs))
-        state.adhoc_scheduler.schedule_jobs(state.loop, jobs, handler)
+        schedule_adhoc_jobs(state.adhoc_scheduler, state.loop, jobs, handler)
         await asyncio.sleep(ADHOC_JOB_INTERVAL_S)
     return
 
