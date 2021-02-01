@@ -4,7 +4,6 @@ We mark a job as completed upon successfully performing it.
 """
 
 import asyncio
-import logging
 
 from ...apptypes import JobHandler, Job, AdhocJob
 from ...db import DB
@@ -23,11 +22,8 @@ async def run_adhoc_job(
     Attempt to run 'handler'.
     On success, update DB record for job.
     """
-    try:
-        await handler(job)
-        await adhoc_job_model.set_job_completed(db, job.job_id)
-    except Exception as e:
-        logging.exception(e)
+    await handler(job)
+    await adhoc_job_model.set_job_completed(db, job.job_id)
     return
 
 
@@ -37,7 +33,7 @@ def schedule_adhoc_jobs(
     jobs: list[AdhocJob],
     handler: JobHandler,
 ) -> None:
-    "purely additive for the moment"
+    "purely additive for the moment - ie. we don't 'unschedule' any jobs"
     for job in jobs:
         if job.job_id in scheduler.scheduled:
             scheduler.scheduled[job.job_id].cancel()
