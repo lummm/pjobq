@@ -25,7 +25,7 @@ class TestAdhoc(IsolatedAsyncioTestCase):
         )
         handler.assert_called_with(job)
         mock_adhoc_job_model.set_job_completed \
-            .assert_called_with(mock_db, job.job_id)
+            .assert_called_with(job.job_id)
         return
 
     async def test_schedule_adhoc_jobs(self):
