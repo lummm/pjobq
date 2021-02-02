@@ -5,17 +5,16 @@ Misc utils
 import asyncio
 import logging
 import time
-from typing import Awaitable
+from typing import Awaitable, Callable
 
 
-DEFAULT_WAILT_LIMIT_S = 128  # approx 2 mins
+DEFAULT_WAIT_LIMIT_S = 128  # approx 2 mins
 
 
-# TODO: set type of f
 async def attempt_forever(
     name: str,
-    fn,
-    retry_wait_limit_s: int = DEFAULT_WAILT_LIMIT_S,
+    fn: Callable[[], Awaitable],
+    retry_wait_limit_s: int = DEFAULT_WAIT_LIMIT_S,
 ):
     "attempt fn forever until success, with exponential backoff"
     attempt = 1
@@ -61,5 +60,8 @@ def setup_logging(level=logging.INFO) -> None:
 
 
 async def delay_execution(awaitable: Awaitable, until: float) -> Awaitable:
+    """
+    Execute awaitable at 'until'
+    """
     await asyncio.sleep(until - time.time())
     return await awaitable
