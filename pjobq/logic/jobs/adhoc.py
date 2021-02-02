@@ -14,7 +14,7 @@ from ...util import delay_execution, create_unfailing_task
 
 async def run_adhoc_job(
     db: DB,
-    adhoc_job_model: type[AdhocJobModel],
+    adhoc_job_model: AdhocJobModel,
     handler: JobHandler,
     job: Job,
 ) -> None:
@@ -23,7 +23,7 @@ async def run_adhoc_job(
     On success, update DB record for job.
     """
     await handler(job)
-    await adhoc_job_model.set_job_completed(db, job.job_id)
+    await adhoc_job_model.set_job_completed(job.job_id)
     return
 
 

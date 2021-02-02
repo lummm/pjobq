@@ -10,8 +10,7 @@ cron_job_converter = get_data_class_convertor(CronJob)
 class CronJobModelImpl(CronJobModel):
     "cron job model implementation"
 
-    @staticmethod
-    async def get_all(db: DB) -> list[CronJob]:
+    async def get_all(self) -> list[CronJob]:
         sql = """
         SELECT job_id,
                job_name,
@@ -21,5 +20,28 @@ class CronJobModelImpl(CronJobModel):
           FROM cron_job
          WHERE enabled
         """
-        rows = await db.fetch(sql)
+        rows = await self.db.fetch(sql)
         return [cron_job_converter(row) for row in rows]
+
+    async def create_job(
+        self,
+        *,
+        cron_schedule: str,
+        job_name: str,
+        cmd_type: str,
+        cmd_payload: str,
+        enabled: bool = True
+    ) -> None:
+        sql = """
+        SELECT adhoc_job_create(
+                 p_cron_schedule => $1,
+                 p_job_name => $2,
+                 p_cmd_type => $3,
+                 p_cmd_payload => $4,
+                 p_enabled => $5
+               )
+        """
+        await self.db.fetch(
+            sql, [cron_schedule, job_name, cmd_type, cmd_payload, enabled]
+        )
+        return

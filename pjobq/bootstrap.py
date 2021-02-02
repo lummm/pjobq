@@ -78,7 +78,7 @@ async def run_adhoc_job_loop(state: State, handler: JobHandler) -> None:
 
     async def reload_window_jobs() -> None:
         """Load all jobs in the window"""
-        jobs = await state.adhoc_model.get_all_in_range(state.db, start_time, end_time)
+        jobs = await state.adhoc_model.get_all_in_range(start_time, end_time)
         logging.debug(
             "loaded %s adhoc jobs in window %s - %s",
             len(jobs),
@@ -100,6 +100,9 @@ async def run_adhoc_job_loop(state: State, handler: JobHandler) -> None:
     while True:
         start_time = time.time()
         end_time = start_time + ADHOC_JOB_INTERVAL_S
+        logging.info(
+            "new start time %s", datetime.fromtimestamp(start_time).isoformat()
+        )
         await reload_window_jobs()
         await asyncio.sleep(ADHOC_JOB_INTERVAL_S)
     return

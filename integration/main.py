@@ -5,6 +5,8 @@ This is the entry point to run integration tests from.
 This should execute inside the system defined by the docker-compose file.
 
 We spin up a test http server which our jobs will make requests to.
+
+All tests get a 'TestEnv' argument for things like db access, or reading the last request to the test server.
 """
 
 import asyncio
@@ -19,7 +21,8 @@ import tests
 TEST_SERVER_PORT = int(os.environ.get("TEST_SERVER_PORT", "8888"))
 
 
-async def debug_failure(test_env):
+async def debug_failure(test_env, error):
+    print("TESTS FAILED - ", error)
     cron_jobs = await test_env.fetch("""
     SELECT * FROM cron_job;
     """)
@@ -51,6 +54,9 @@ async def start_test_http_server(req_q: asyncio.Queue):
 
 
 async def run_test(test_env, test):
+    """
+    Clean up the database before every test run.
+    """
     print("running", test)
     await test_env.cleanup()
     await test(test_env)
@@ -71,10 +77,13 @@ async def run_tests(req_q: asyncio.Queue):
         for test in tests.TESTS: # o/w run all the tests
             await run_test(test_env, test)
     except Exception as e:
-        await debug_failure(test_env)
+        await debug_failure(test_env, e)
         # must bring down whole loop
         loop = asyncio.get_event_loop()
-        loop.stop()
+        try:
+            loop.stop()
+        except:
+            pass
         raise(e)
     return
 

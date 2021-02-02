@@ -19,12 +19,12 @@ from ..util import delay_execution
 
 class CronScheduler:
     db: DB
-    cron_model: type[CronJobModel]
+    cron_model: CronJobModel
     cron_jobs: list[CronJob]
     loop: asyncio.AbstractEventLoop
 
     async def init(
-        self, db: DB, cron_model: type[CronJobModel], loop: asyncio.AbstractEventLoop
+        self, db: DB, cron_model: CronJobModel, loop: asyncio.AbstractEventLoop
     ):
         self.db = db
         self.cron_model = cron_model
@@ -38,7 +38,7 @@ class CronScheduler:
 
     async def reload_cron_jobs(self) -> None:
         "relaod all cron jobs"
-        self.cron_jobs = await self.cron_model.get_all(self.db)
+        self.cron_jobs = await self.cron_model.get_all()
         logging.info("loaded %s cron jobs", len(self.cron_jobs))
         return
 

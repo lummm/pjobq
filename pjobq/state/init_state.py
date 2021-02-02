@@ -16,8 +16,8 @@ from .state import State
 async def init(
     loop: asyncio.AbstractEventLoop,
     db=DBImpl(),
-    cron_model=CronJobModelImpl,
-    adhoc_model=AdhocJobModelImpl,
+    cron_model=CronJobModelImpl(),
+    adhoc_model=AdhocJobModelImpl(),
     http=AppHttpImpl(),
 ) -> State:
     state = State(
@@ -30,6 +30,8 @@ async def init(
         cron_scheduler=CronScheduler(),
     )
     await state.db.init()
+    await state.cron_model.init(state.db)
+    await state.adhoc_model.init(state.db)
     await state.http.init()
     await state.adhoc_scheduler.init(state.db, state.adhoc_model)
     await state.cron_scheduler.init(state.db, state.cron_model, loop)

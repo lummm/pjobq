@@ -27,8 +27,8 @@ class State:
     """
 
     db: DB
-    cron_model: type[CronJobModel]
-    adhoc_model: type[AdhocJobModel]
+    cron_model: CronJobModel
+    adhoc_model: AdhocJobModel
     http: AppHttp
     loop: asyncio.AbstractEventLoop
     adhoc_scheduler: AdhocScheduler
