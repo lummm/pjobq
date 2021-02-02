@@ -33,7 +33,7 @@ class CronJobModelImpl(CronJobModel):
         enabled: bool = True
     ) -> None:
         sql = """
-        SELECT adhoc_job_create(
+        SELECT cron_job_create(
                  p_cron_schedule => $1,
                  p_job_name => $2,
                  p_cmd_type => $3,

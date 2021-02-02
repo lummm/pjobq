@@ -15,8 +15,16 @@ async def init():
     return
 
 
+async def make_cron_job(schedule, name):
+    await cron.create_job(
+        cron_schedule=schedule,
+        job_name=name,
+        cmd_type="HTTP",
+        cmd_payload=json.dumps({"method": "GET", "url": "http://www.google.com"}))
+    return
 
-async def make_job(offset):
+
+async def make_adhoc_job(offset):
     await adhoc.create_job(
         schedule_ts=time.time() + offset,
         job_name="test-job",
@@ -27,5 +35,5 @@ async def make_job(offset):
 
 async def run_test(n):
     await asyncio.gather(*[
-        make_job(1)
+        make_adhoc_job(1)
         for i in range(n)])
