@@ -29,18 +29,28 @@ INIT_SQL = [
 ]
 
 
+def get_connect_args() -> dict:
+    return {
+        "user": ENV.PGUSER,
+        "password": ENV.PGPASSWORD,
+        "database": ENV.PGDB,
+        "host": ENV.PGHOST,
+    }
+
+
 class DBImpl(DB):
-    con: DBCon
+    pool: asyncpg.pool.Pool
+    dedicated_cons: list[DBCon]
 
     async def init(self):
-        self.con = await asyncpg.connect(
-            user=ENV.PGUSER,
-            password=ENV.PGPASSWORD,
-            database=ENV.PGDB,
-            host=ENV.PGHOST,
+        self.pool = await asyncpg.create_pool(
+            **get_connect_args(),
+            min_size=5,
+            max_size=10,
         )
         for cmds in INIT_SQL:
-            await self.con.execute(cmds)
+            await self.execute(cmds)
+        self.dedicated_cons = []
         return
 
     async def add_pg_notify_listener(
@@ -48,16 +58,18 @@ class DBImpl(DB):
         channel: str,
         cb: PgNotifyListener,
     ):
-        await self.con.add_listener(channel, _create_notify_cb(cb))
+        con = await asyncpg.connect(**get_connect_args())
+        await con.add_listener(channel, _create_notify_cb(cb))
+        self.dedicated_cons.append(con)
         return
 
     async def fetch(self, sql: str, bindargs: list[str] = []) -> list[asyncpg.Record]:
-        async with self.con.transaction():
-            return await self.con.fetch(sql, *bindargs)
+        async with self.pool.acquire() as con:
+            return await con.fetch(sql, *bindargs)
 
     async def execute(self, sql: str, bindargs: list[Any] = []) -> None:
-        async with self.con.transaction():
-            return await self.con.execute(sql, *bindargs)
+        async with self.pool.acquire() as con:
+            return await con.execute(sql, *bindargs)
 
 
 def _create_notify_cb(cb: PgNotifyListener):
