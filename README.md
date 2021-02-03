@@ -2,7 +2,7 @@
 pjobq is a python library to define a dynamic job scheduler, in conjunction with postgres.
 
 # Specifically
-We manage two styles of jobs - 'cron' jobs scheduled with cron syntax, and ar
+We manage two styles of jobs - 'cron' jobs scheduled with cron syntax, and arbitrary timestamp 'adhoc' jobs.
 
 # Components
 
@@ -39,6 +39,11 @@ postgres - with uuid-ossp:
 AWS postgres supports "uuid-ossp", and this is generally my target host.  This dependency could be worked around if extension installation is a problem.
 
 python - see [requirements.txt](requirements.txt).
+
+# Limitations
+THe scheduler is not incredibly precise, meaning a job will be run somewhere in the range
+of a tenth of a second after it is scheduled.
+Greater precision is not a design goal at this time.
 
 # More details
 See [architecture](notes/architecture.md).
