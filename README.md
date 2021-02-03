@@ -36,12 +36,12 @@ See [test setup](integration/docker-compose.yaml) for an example system.
 # Requirements
 postgres - with uuid-ossp:
 `CREATE EXTENSION IF NOT EXISTS "uuid-ossp";`
-AWS postgres supports "uuid-ossp", and this is generally my target host.  This dependency could be worked around if extension installation is a problem.
+AWS postgres supports "uuid-ossp" as of the time of writing.
 
 python - see [requirements.txt](requirements.txt).
 
 # Limitations
-THe scheduler is not incredibly precise, meaning a job will be run somewhere in the range
+The scheduler is not incredibly precise, meaning a job will be run somewhere in the range
 of a tenth of a second after it is scheduled.
 Greater precision is not a design goal at this time.
 
