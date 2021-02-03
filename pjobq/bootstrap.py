@@ -57,7 +57,8 @@ async def run_cron_job_loop(
     TODO: implement a periodic re-sync of the clock to the top of the minute
     """
     await state.db.add_pg_notify_listener(
-        CRON_NOTIFY_CHANNEL, scheduling.on_cron_table_notify_factory(state)
+        CRON_NOTIFY_CHANNEL,
+        scheduling.on_cron_table_notify_factory(state.loop, state.cron_scheduler),
     )
     await scheduling.reload_cron_jobs(state.cron_scheduler)
     while True:
