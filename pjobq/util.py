@@ -46,7 +46,7 @@ def create_unfailing_task(
             logging.error("task '%s' failed", name)
             logging.exception(e)
 
-    return asyncio.create_task(impl())
+    return loop.create_task(impl())
 
 
 def setup_logging(level=logging.INFO) -> None:

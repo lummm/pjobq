@@ -25,8 +25,8 @@ class AdhocSchedulerState:
 
     scheduled: dict[str, Task]
     adhoc_job_model: AdhocJobModel
-    start_time: float
-    end_time: float
+    start_time: float = 0
+    end_time: float = 0
 
     async def init(
         self,

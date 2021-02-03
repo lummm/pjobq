@@ -89,7 +89,10 @@ async def run_adhoc_job_loop(state: State, handler: JobHandler) -> None:
     )
     await scheduling.update_adhoc_window(state.loop, handler, state.adhoc_scheduler)
     await state.db.add_pg_notify_listener(
-        ADHOC_NOTIFY_CHANNEL, scheduling.on_adhoc_table_notify_factory(state, handler)
+        ADHOC_NOTIFY_CHANNEL,
+        scheduling.on_adhoc_table_notify_factory(
+            state.loop, state.adhoc_scheduler, handler
+        ),
     )
     while True:
         await scheduling.update_adhoc_window(state.loop, handler, state.adhoc_scheduler)

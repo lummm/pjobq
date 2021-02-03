@@ -9,7 +9,7 @@ import time
 from pjobq.apptypes import JobHandler, Job, AdhocJob, EventLoop, PgNotifyListener
 from pjobq.constants import ADHOC_JOB_INTERVAL_S, NOTIFY_UPDATE_CMD
 from pjobq.models import AdhocJobModel
-from pjobq.state import AdhocSchedulerState, State
+from pjobq.state import AdhocSchedulerState
 from pjobq.util import delay_execution, create_unfailing_task
 
 
@@ -57,7 +57,9 @@ async def update_adhoc_window(
 
 
 def on_adhoc_table_notify_factory(
-    state: State, handler: JobHandler
+    loop: EventLoop,
+    scheduler: AdhocSchedulerState,
+    handler: JobHandler,
 ) -> PgNotifyListener:
     """
     Generate a handler for pg_notify events for the adhoc_job table.
@@ -67,8 +69,8 @@ def on_adhoc_table_notify_factory(
         if payload == NOTIFY_UPDATE_CMD:
             create_unfailing_task(
                 "adhoc job table refresh",
-                state.loop,
-                reload_jobs_in_adhoc_window(state.loop, handler, state.adhoc_scheduler),
+                loop,
+                reload_jobs_in_adhoc_window(loop, handler, scheduler),
             )
             return
         logging.error("unknown cron notify payload -> %s", payload)

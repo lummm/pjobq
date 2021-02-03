@@ -5,10 +5,17 @@ import unittest
 from unittest import IsolatedAsyncioTestCase
 from unittest.mock import AsyncMock, MagicMock
 
+from pjobq.constants import NOTIFY_UPDATE_CMD
+
 import pjobq.logic.scheduling.adhoc as adhoc
 
 from testutils.fixtures import http_job, adhoc_job
-from testutils.mocks import mock_event_loop, mock_adhoc_job_model, mock_db, mock_adhoc_scheduler
+from testutils.mocks import (
+    mock_event_loop,
+    mock_adhoc_job_model,
+    mock_db,
+    mock_adhoc_scheduler
+)
 
 
 class TestAdhoc(IsolatedAsyncioTestCase):
@@ -48,6 +55,15 @@ class TestAdhoc(IsolatedAsyncioTestCase):
         for i in range(1, 5):
             await asyncio.sleep(spacing)
             handler.assert_called_with(jobs[i - 1])
+        return
+
+    async def test_on_adhoc_table_notify_factory(self):
+        loop = mock_event_loop
+        scheduler = await mock_adhoc_scheduler()
+        handler = MagicMock()
+        on_notify = adhoc.on_adhoc_table_notify_factory(loop, scheduler, handler)
+        on_notify(NOTIFY_UPDATE_CMD)
+        loop.create_task.assert_called()
         return
 
 
