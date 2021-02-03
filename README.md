@@ -17,7 +17,7 @@ Job creation is intended to be through the database, using the functions defined
 pjobq will take care of running jobs as long as it is running and connected to the db.
 
 We expose a simple interface to define job execution - jobs have a `cmd_type` and a `cmd_payload`.
-The `cmd_payload` is interpreted different depending on the `cmd_type`.
+The `cmd_payload` is interpreted differently depending on the `cmd_type`.
 
 Currently we only support `cmd_type == 'HTTP'`, although the intent is to add support for 'SQL' and 'ZMQ' jobs.
 
