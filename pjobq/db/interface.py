@@ -18,7 +18,7 @@ class DB(ABC):
     async def add_pg_notify_listener(self, channel: str, cb: PgNotifyListener) -> None:
         """
         Add a listener for pg_notify events.
-        The listener will be given its own dedicated db connection.
+        All listeners share a dedicated db connection.
         """
         pass
 

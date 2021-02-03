@@ -40,7 +40,7 @@ def get_connect_args() -> dict:
 
 class DBImpl(DB):
     pool: asyncpg.pool.Pool
-    dedicated_cons: list[DBCon]
+    dedicated_con: DBCon
 
     async def init(self):
         self.pool = await asyncpg.create_pool(
@@ -50,7 +50,7 @@ class DBImpl(DB):
         )
         for cmds in INIT_SQL:
             await self.execute(cmds)
-        self.dedicated_cons = []
+        self.dedicated_con = await asyncpg.connect(**get_connect_args())
         return
 
     async def add_pg_notify_listener(
@@ -58,9 +58,7 @@ class DBImpl(DB):
         channel: str,
         cb: PgNotifyListener,
     ):
-        con = await asyncpg.connect(**get_connect_args())
-        await con.add_listener(channel, _create_notify_cb(cb))
-        self.dedicated_cons.append(con)
+        await self.dedicated_con.add_listener(channel, _create_notify_cb(cb))
         return
 
     async def fetch(self, sql: str, bindargs: list[str] = []) -> list[asyncpg.Record]:
