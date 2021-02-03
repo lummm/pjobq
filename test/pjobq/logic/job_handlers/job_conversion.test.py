@@ -2,7 +2,7 @@ import json
 import unittest
 
 from pjobq.apptypes import Job, CronJob, HttpJob
-import pjobq.logic.jobs.job_conversion as job_conversion
+import pjobq.logic.job_handlers.job_conversion as job_conversion
 
 from testutils.fixtures import job, cron_job, http_get_payload
 

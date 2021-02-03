@@ -1,16 +1,14 @@
 """
-This package defines handlers to fire when a job needs to be run.
-
-Job handling should always be executing in the context of an asycnio task (thus we can await as we please and not block firing off other jobs).
-Job handling should ideally be pure I/O, as we are single threaded.
+Definitions of handlers for different job types
 """
 
 import logging
 
 import aiohttp
 
-from ...apptypes import HttpJob, Job
-from ...apphttp import AppHttp
+from pjobq.apptypes import HttpJob, Job
+from pjobq.apphttp import AppHttp
+
 from .job_conversion import as_http_job
 
 

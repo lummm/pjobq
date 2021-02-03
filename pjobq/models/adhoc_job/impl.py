@@ -1,8 +1,9 @@
 import time
 
-from ...apptypes import AdhocJob
+from pjobq.apptypes import AdhocJob
+from pjobq.db import get_data_class_convertor
+
 from .interface import AdhocJobModel
-from ...db import get_data_class_convertor
 
 
 adhoc_job_converter = get_data_class_convertor(AdhocJob)

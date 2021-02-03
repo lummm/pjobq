@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 import time
 
-from ...apptypes import AdhocJob
-from ...db import DB
+from pjobq.apptypes import AdhocJob
+from pjobq.db import DB
 
 
 class AdhocJobModel(ABC):

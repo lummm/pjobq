@@ -1,7 +1,7 @@
-from ...apptypes import CronJob
+from pjobq.apptypes import CronJob
+from pjobq.db import DB, get_data_class_convertor
+
 from .interface import CronJobModel
-from ...db import DB
-from ...db import get_data_class_convertor
 
 
 cron_job_converter = get_data_class_convertor(CronJob)

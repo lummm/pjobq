@@ -8,7 +8,7 @@ import logging
 
 import pycron  # type: ignore
 
-from ...apptypes import JobHandler, CronJob
+from pjobq.apptypes import JobHandler, CronJob
 
 
 async def run_scheduled_cron_jobs(

@@ -5,7 +5,7 @@ Functions to convert into the various kinds of jobs.
 import dataclasses
 import json
 
-from ...apptypes import Job, HttpJob
+from pjobq.apptypes import Job, HttpJob
 
 
 def as_http_job(job: Job) -> HttpJob:

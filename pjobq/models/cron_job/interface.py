@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
-from ...apptypes import CronJob
-from ...db import DB
+from pjobq.apptypes import CronJob
+from pjobq.db import DB
 
 
 class CronJobModel(ABC):

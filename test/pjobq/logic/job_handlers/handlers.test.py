@@ -4,7 +4,7 @@ from unittest import IsolatedAsyncioTestCase
 from unittest.mock import AsyncMock
 
 from pjobq.apptypes import HttpJob
-import pjobq.logic.jobs.handlers as handlers
+import pjobq.logic.job_handlers.handlers as handlers
 
 from testutils.mocks import http_mock
 from testutils.fixtures import http_job

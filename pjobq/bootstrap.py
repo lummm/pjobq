@@ -7,12 +7,17 @@ from datetime import datetime
 import logging
 import time
 
-from .apptypes import JobHandler, Job
-from .state import State, default_init
-from .constants import ADHOC_JOB_INTERVAL_S, ADHOC_NOTIFY_CHANNEL, NOTIFY_UPDATE_CMD
-from .env import ENV
-from .logic.jobs import handle_http, run_scheduled_cron_jobs, schedule_adhoc_jobs
-from .util import attempt_forever, setup_logging, create_unfailing_task
+from pjobq.apptypes import JobHandler, Job
+from pjobq.state import State, default_init
+from pjobq.constants import (
+    ADHOC_JOB_INTERVAL_S,
+    ADHOC_NOTIFY_CHANNEL,
+    NOTIFY_UPDATE_CMD,
+)
+from pjobq.env import ENV
+from pjobq.logic import job_handlers
+from pjobq.logic import scheduling
+from pjobq.util import attempt_forever, setup_logging, create_unfailing_task
 
 
 def handle_job_factory(state: State) -> JobHandler:
@@ -24,7 +29,7 @@ def handle_job_factory(state: State) -> JobHandler:
         """Top level handler entry."""
         logging.info("running job %s::%s", job.job_name, job.job_id)
         if job.cmd_type == "HTTP":
-            return await handle_http(state.http, job)
+            return await job_handlers.handle_http(state.http, job)
         logging.error("no such cmd type %s", job.cmd_type)
         return
 
@@ -57,7 +62,7 @@ async def run_cron_job_loop(
         create_unfailing_task(
             "run cron jobs",
             state.loop,
-            run_scheduled_cron_jobs(
+            scheduling.run_scheduled_cron_jobs(
                 dt=dt,
                 cron_jobs=state.cron_scheduler.cron_jobs,
                 handler=handler,
@@ -85,7 +90,7 @@ async def run_adhoc_job_loop(state: State, handler: JobHandler) -> None:
             datetime.fromtimestamp(start_time).isoformat(),
             datetime.fromtimestamp(end_time).isoformat(),
         )
-        schedule_adhoc_jobs(state.adhoc_scheduler, state.loop, jobs, handler)
+        scheduling.schedule_adhoc_jobs(state.adhoc_scheduler, state.loop, jobs, handler)
         return
 
     def on_adhoc_job_table_notify(payload: str):

@@ -5,11 +5,11 @@ We mark a job as completed upon successfully performing it.
 
 import asyncio
 
-from ...apptypes import JobHandler, Job, AdhocJob
-from ...db import DB
-from ...models import AdhocJobModel
-from ...state import AdhocScheduler
-from ...util import delay_execution, create_unfailing_task
+from pjobq.apptypes import JobHandler, Job, AdhocJob
+from pjobq.db import DB
+from pjobq.models import AdhocJobModel
+from pjobq.state import AdhocScheduler
+from pjobq.util import delay_execution, create_unfailing_task
 
 
 async def run_adhoc_job(
