@@ -20,7 +20,7 @@ class TestUtil(IsolatedAsyncioTestCase):
                 attempt += 1
                 raise Exception("this is an intentional exception")
             return
-        await util.attempt_forever("test attempt forever", test_cb, step_s=0.01)
+        await util.attempt_forever("test attempt forever", test_cb)
         mock.assert_has_calls([call(i) for i in range(trials)])
         return
 

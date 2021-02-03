@@ -4,6 +4,11 @@
 ...
 
 ## Testing
+The bootstap module is difficult to unit test.
+TODO:
+Extract as much of the logic as possible to pure functions you can test.
+
+
 More performance tests need to be done in order to profile the system.
 
 TODO:
