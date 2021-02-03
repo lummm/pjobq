@@ -5,7 +5,6 @@ Some high-level functinos that tie together logical components into a running ap
 import asyncio
 from datetime import datetime
 import logging
-import time
 
 from pjobq.apptypes import JobHandler, Job
 from pjobq.state import State, default_init
@@ -78,43 +77,23 @@ async def run_cron_job_loop(
 
 async def run_adhoc_job_loop(state: State, handler: JobHandler) -> None:
     """
-    Maintain a list of jobs to be scheduled in a window of ADHOC_JOB_INTERVAL_S
-    into the future.
-    Also listen for updates to the adhoc_jobs table in order to reload this list.
+    Update the known adhoc job schedule in accordance with the window of time that we load jobs for.
+    We sleep for slightly shorter than the window so as to avoid any gaps in time.
+    Also listen for updates to the adhoc_jobs table.
     """
-    # our window of time
-    start_time = time.time()
-    end_time = start_time + ADHOC_JOB_INTERVAL_S
-
-    async def reload_window_jobs() -> None:
-        """Load all jobs in the window"""
-        jobs = await state.adhoc_model.get_all_in_range(start_time, end_time)
-        logging.debug(
-            "loaded %s adhoc jobs in window %s - %s",
-            len(jobs),
-            datetime.fromtimestamp(start_time).isoformat(),
-            datetime.fromtimestamp(end_time).isoformat(),
-        )
-        scheduling.schedule_adhoc_jobs(state.adhoc_scheduler, state.loop, jobs, handler)
-        return
-
-    def on_adhoc_job_table_notify(payload: str):
-        """Handle updates to the adhoc_job table"""
-        if payload == NOTIFY_UPDATE_CMD:
-            create_unfailing_task("reload adhoc jobs", state.loop, reload_window_jobs())
-        return
-
+    sleep_time_s = ADHOC_JOB_INTERVAL_S - (ADHOC_JOB_INTERVAL_S / 1000)
+    logging.info(
+        "adhoc job window is %s seconds, reloading every %s seconds",
+        ADHOC_JOB_INTERVAL_S,
+        sleep_time_s,
+    )
+    await scheduling.update_adhoc_window(state.loop, handler, state.adhoc_scheduler)
     await state.db.add_pg_notify_listener(
-        ADHOC_NOTIFY_CHANNEL, on_adhoc_job_table_notify
+        ADHOC_NOTIFY_CHANNEL, scheduling.on_adhoc_table_notify_factory(state, handler)
     )
     while True:
-        start_time = time.time()
-        end_time = start_time + ADHOC_JOB_INTERVAL_S
-        logging.info(
-            "new start time %s", datetime.fromtimestamp(start_time).isoformat()
-        )
-        await reload_window_jobs()
-        await asyncio.sleep(ADHOC_JOB_INTERVAL_S)
+        await scheduling.update_adhoc_window(state.loop, handler, state.adhoc_scheduler)
+        await asyncio.sleep(sleep_time_s)
     return
 
 

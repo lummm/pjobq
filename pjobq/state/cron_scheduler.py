@@ -1,4 +1,6 @@
 """
+A slice of state living on the parent State object.
+
 Load all known cron jobs at once.
 Keep track of changes to the table, and reload when necessary.
 TODO: move all functions except 'init' into logic

@@ -11,6 +11,7 @@ import pycron  # type: ignore
 from pjobq.apptypes import JobHandler, CronJob, EventLoop, PgNotifyListener
 from pjobq.constants import NOTIFY_UPDATE_CMD
 from pjobq.state import CronSchedulerState, State
+from pjobq.util import create_unfailing_task
 
 
 async def run_scheduled_cron_jobs(
@@ -44,9 +45,12 @@ def on_cron_table_notify_factory(state: State) -> PgNotifyListener:
     """
 
     def on_cron_table_notify(payload: str) -> None:
-
         if payload == NOTIFY_UPDATE_CMD:
-            state.loop.create_task(reload_cron_jobs(state.cron_scheduler))
+            create_unfailing_task(
+                "cron job table refresh",
+                state.loop,
+                reload_cron_jobs(state.cron_scheduler),
+            )
             return
         logging.error("unknown cron notify payload -> %s", payload)
         return
