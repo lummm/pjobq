@@ -29,9 +29,11 @@ Docker image 'pjobq' can be built from the root directory with `./hooks/build`.
 python package 'pjobq' can be installed with `python -m pip install .`
 
 ## Running in your project
-This project comes with two parts, some database definitions to load in postgres, and a python process that will manage jobs.
-See [test setup](integration/docker-compose.yaml) for an example system.
+Run a (single) process with pjobq, whether in a docker container or directly through [main.py](main.py).
+DB configuration is done with environemnt variables, as well as log level.
+For default environment variables, see [env.py](pjobq/env.py).
 
+See [test setup](integration/docker-compose.yaml) for an example system.
 
 # Requirements
 postgres - with uuid-ossp:
