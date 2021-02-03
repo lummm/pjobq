@@ -1,7 +1,9 @@
 # Development concerns moving forward
 
-## Performance
-...
+## Road map
+- Pull apart bootstrap.py to be more testable
+- Tag a version, and cut a dev branch
+
 
 ## Testing
 The bootstap module is difficult to unit test.
