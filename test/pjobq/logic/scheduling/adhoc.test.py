@@ -66,6 +66,16 @@ class TestAdhoc(IsolatedAsyncioTestCase):
         loop.create_task.assert_called()
         return
 
+    async def test_reload_jobs_in_adhoc_window(self):
+        loop = mock_event_loop
+        handler = MagicMock()
+        scheduler = await mock_adhoc_scheduler()
+        scheduler.start_time = 100
+        scheduler.end_time = 200
+        await adhoc.reload_jobs_in_adhoc_window(loop, handler, scheduler)
+        scheduler.adhoc_job_model.get_all_in_range.assert_called_with(100, 200)
+        return
+
 
 if __name__ == '__main__':
     unittest.main()
