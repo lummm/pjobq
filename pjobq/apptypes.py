@@ -1,3 +1,4 @@
+import asyncio
 from dataclasses import dataclass
 from typing import Callable, Awaitable, Any, Optional
 
@@ -50,3 +51,4 @@ PgNotifyListener = Callable[[NotifyPayload], Any]
 # ---- other types -----
 # ----------------------
 JobHandler = Callable[[Job], Awaitable[None]]
+EventLoop = asyncio.AbstractEventLoop

@@ -4,19 +4,14 @@ We try to keep the cache small, because if this process were to die,
 we would lose all the cached jobs.
 However, we must query the adhoc_jobs table at the same interval as our cache,
 so it cannot be arbitrarily small.
-
-TODO: name this class better, as it's really a state container, so something like AdhocSchedulerState
 """
 
-import asyncio
 from asyncio import Task
-import time
 
-from ..db import DB
-from ..models import AdhocJobModel
+from pjobq.models import AdhocJobModel
 
 
-class AdhocScheduler:
+class AdhocSchedulerState:
     """
     Cache of jobs to run in the future.
     This is maintained as a dict of asyncio tasks, indexed by job id.
@@ -25,15 +20,12 @@ class AdhocScheduler:
     """
 
     scheduled: dict[str, Task]
-    db: DB
     adhoc_job_model: AdhocJobModel
 
     async def init(
         self,
-        db: DB,
         adhoc_job_model: AdhocJobModel,
     ):
         self.scheduled = {}
-        self.db = db
         self.adhoc_job_model = adhoc_job_model
         return self

@@ -8,7 +8,9 @@ import logging
 
 import pycron  # type: ignore
 
-from pjobq.apptypes import JobHandler, CronJob
+from pjobq.apptypes import JobHandler, CronJob, EventLoop, PgNotifyListener
+from pjobq.constants import NOTIFY_UPDATE_CMD
+from pjobq.state import CronSchedulerState, State
 
 
 async def run_scheduled_cron_jobs(
@@ -24,3 +26,29 @@ async def run_scheduled_cron_jobs(
     to_run = [job for job in cron_jobs if pycron.is_now(job.cron_schedule, dt)]
     await asyncio.gather(*[handler(job) for job in to_run])
     return
+
+
+async def reload_cron_jobs(cron_state: CronSchedulerState) -> None:
+    "relaod all cron jobs - simply replace them"
+    cron_state.cron_jobs = await cron_state.cron_model.get_all()
+    logging.info("loaded %s cron jobs", len(cron_state.cron_jobs))
+    return
+
+
+def on_cron_table_notify_factory(state: State) -> PgNotifyListener:
+    """
+    Generate a handler for pg_notify events for the cron_job table.
+    Because this is sync, we need to create a task.
+    Note also that we have to 'await' at some point for the task to run.
+    Since we are living inside an asyncio.sleep loop, this should be fine.
+    """
+
+    def on_cron_table_notify(payload: str) -> None:
+
+        if payload == NOTIFY_UPDATE_CMD:
+            state.loop.create_task(reload_cron_jobs(state.cron_scheduler))
+            return
+        logging.error("unknown cron notify payload -> %s", payload)
+        return
+
+    return on_cron_table_notify

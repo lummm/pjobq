@@ -5,7 +5,6 @@ import unittest
 from unittest import IsolatedAsyncioTestCase
 from unittest.mock import AsyncMock, MagicMock
 
-from pjobq.state.adhoc_scheduler import AdhocScheduler
 import pjobq.logic.scheduling.adhoc as adhoc
 
 from testutils.fixtures import http_job, adhoc_job
@@ -18,7 +17,6 @@ class TestAdhoc(IsolatedAsyncioTestCase):
         job = http_job()
         handler = AsyncMock()
         await adhoc.run_adhoc_job(
-            mock_db,
             mock_adhoc_job_model,
             handler,
             job

@@ -12,6 +12,7 @@ from pjobq.state import State, default_init
 from pjobq.constants import (
     ADHOC_JOB_INTERVAL_S,
     ADHOC_NOTIFY_CHANNEL,
+    CRON_NOTIFY_CHANNEL,
     NOTIFY_UPDATE_CMD,
 )
 from pjobq.env import ENV
@@ -56,6 +57,10 @@ async def run_cron_job_loop(
     `sleep`, we will slowly be losing time on our counter.
     TODO: implement a periodic re-sync of the clock to the top of the minute
     """
+    await state.db.add_pg_notify_listener(
+        CRON_NOTIFY_CHANNEL, scheduling.on_cron_table_notify_factory(state)
+    )
+    await scheduling.reload_cron_jobs(state.cron_scheduler)
     while True:
         await asyncio.sleep(60)
         dt = datetime.now().replace(second=0, microsecond=0)

@@ -3,18 +3,18 @@ This wires together interfaces with their implementations,
 returning the state of the application.
 """
 
-import asyncio
+from pjobq.apptypes import EventLoop
+from pjobq.db import DBImpl
+from pjobq.models import CronJobModelImpl, AdhocJobModelImpl
+from pjobq.apphttp import AppHttpImpl
 
-from ..db import DBImpl
-from ..models import CronJobModelImpl, AdhocJobModelImpl
-from ..apphttp import AppHttpImpl
-from .adhoc_scheduler import AdhocScheduler
-from .cron_scheduler import CronScheduler
+from .adhoc_scheduler import AdhocSchedulerState
+from .cron_scheduler import CronSchedulerState
 from .state import State
 
 
 async def init(
-    loop: asyncio.AbstractEventLoop,
+    loop: EventLoop,
     db=DBImpl(),
     cron_model=CronJobModelImpl(),
     adhoc_model=AdhocJobModelImpl(),
@@ -26,17 +26,17 @@ async def init(
         adhoc_model=adhoc_model,
         http=http,
         loop=loop,
-        adhoc_scheduler=AdhocScheduler(),
-        cron_scheduler=CronScheduler(),
+        adhoc_scheduler=AdhocSchedulerState(),
+        cron_scheduler=CronSchedulerState(),
     )
     await state.db.init()
     await state.cron_model.init(state.db)
     await state.adhoc_model.init(state.db)
     await state.http.init()
-    await state.adhoc_scheduler.init(state.db, state.adhoc_model)
-    await state.cron_scheduler.init(state.db, state.cron_model, loop)
+    await state.adhoc_scheduler.init(state.adhoc_model)
+    await state.cron_scheduler.init(state.cron_model)
     return state
 
 
-async def default_init(loop: asyncio.AbstractEventLoop) -> State:
+async def default_init(loop: EventLoop) -> State:
     return await init(loop)

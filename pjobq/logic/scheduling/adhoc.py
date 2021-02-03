@@ -6,14 +6,12 @@ We mark a job as completed upon successfully performing it.
 import asyncio
 
 from pjobq.apptypes import JobHandler, Job, AdhocJob
-from pjobq.db import DB
 from pjobq.models import AdhocJobModel
-from pjobq.state import AdhocScheduler
+from pjobq.state import AdhocSchedulerState
 from pjobq.util import delay_execution, create_unfailing_task
 
 
 async def run_adhoc_job(
-    db: DB,
     adhoc_job_model: AdhocJobModel,
     handler: JobHandler,
     job: Job,
@@ -28,7 +26,7 @@ async def run_adhoc_job(
 
 
 def schedule_adhoc_jobs(
-    scheduler: AdhocScheduler,
+    scheduler: AdhocSchedulerState,
     loop: asyncio.AbstractEventLoop,
     jobs: list[AdhocJob],
     handler: JobHandler,
@@ -37,9 +35,7 @@ def schedule_adhoc_jobs(
     for job in jobs:
         if job.job_id in scheduler.scheduled:
             scheduler.scheduled[job.job_id].cancel()
-        job_exec_awaitable = run_adhoc_job(
-            scheduler.db, scheduler.adhoc_job_model, handler, job
-        )
+        job_exec_awaitable = run_adhoc_job(scheduler.adhoc_job_model, handler, job)
         scheduler.scheduled[job.job_id] = create_unfailing_task(
             job.job_id, loop, delay_execution(job_exec_awaitable, job.schedule_ts)
         )
