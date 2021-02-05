@@ -40,7 +40,9 @@ def schedule_adhoc_jobs(
                 # nothing to reschedule
                 continue
             if job.job_id in scheduler.executing:
-                logging.info("can't reschedule job as it's already executing - %s", job.job_id)
+                logging.info(
+                    "can't reschedule job as it's already executing - %s", job.job_id
+                )
                 # we can't cancel it, it's already executing.
                 # we just skip this job
                 continue
@@ -49,7 +51,9 @@ def schedule_adhoc_jobs(
 
         scheduler.sched_time[job.job_id] = job.schedule_ts
         scheduler.scheduled[job.job_id] = schedule_execution(
-            loop, job_execution_cb_factory(scheduler, loop, job, handler), job.schedule_ts
+            loop,
+            job_execution_cb_factory(scheduler, loop, job, handler),
+            job.schedule_ts,
         )
     return
 
@@ -65,6 +69,7 @@ def job_execution_cb_factory(
     We run the job as an asyncio Task.
     Clean up the scheduler when the job has completed.
     """
+
     async def execute_job() -> None:
         await run_adhoc_job(scheduler.adhoc_job_model, handler, job)
         scheduler.sched_time.pop(job.job_id)
