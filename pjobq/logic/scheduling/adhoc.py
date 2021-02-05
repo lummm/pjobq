@@ -40,6 +40,7 @@ def schedule_adhoc_jobs(
                 # nothing to reschedule
                 continue
             if job.job_id in scheduler.executing:
+                logging.info("can't reschedule job as it's already executing - %s", job.job_id)
                 # we can't cancel it, it's already executing.
                 # we just skip this job
                 continue
