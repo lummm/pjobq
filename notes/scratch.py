@@ -37,3 +37,22 @@ async def run_test(n):
     await asyncio.gather(*[
         make_adhoc_job(1)
         for i in range(n)])
+
+
+async def main():
+    import time
+    t0 = time.time()
+    t1 = None
+    def cb():
+        nonlocal t1
+        t1 = time.time()
+        return
+    loop = asyncio.get_event_loop()
+    loop.call_later(0.1, cb)
+    await asyncio.sleep(1)
+    print(t1 - t0)
+    return
+
+
+if __name__ == '__main__':
+    asyncio.run(main())

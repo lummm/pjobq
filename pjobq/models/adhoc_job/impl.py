@@ -18,7 +18,7 @@ class AdhocJobModelImpl(AdhocJobModel):
         end_time: float,
     ) -> list[AdhocJob]:
         sql = """
-        SELECT job_id,
+        SELECT job_id::TEXT,
                job_name,
                EXTRACT(epoch FROM schedule_ts) schedule_ts,
                cmd_type,

@@ -10,7 +10,7 @@ from pjobq.apptypes import JobHandler, Job, AdhocJob, EventLoop, PgNotifyListene
 from pjobq.constants import ADHOC_JOB_INTERVAL_S, NOTIFY_UPDATE_CMD
 from pjobq.models import AdhocJobModel
 from pjobq.state import AdhocSchedulerState
-from pjobq.util import delay_execution, create_unfailing_task
+from pjobq.util import create_unfailing_task, schedule_execution
 
 
 async def run_adhoc_job(
@@ -36,10 +36,28 @@ def schedule_adhoc_jobs(
     "purely additive for the moment - ie. we don't 'unschedule' any jobs"
     for job in jobs:
         if job.job_id in scheduler.scheduled:
+            if job.job_id in scheduler.executing:
+                # we can't cancel it, it's already executing.
+                # we just skip this job
+                continue
+            logging.info("cancelling job %s", job.job_id)
             scheduler.scheduled[job.job_id].cancel()
-        job_exec_awaitable = run_adhoc_job(scheduler.adhoc_job_model, handler, job)
-        scheduler.scheduled[job.job_id] = create_unfailing_task(
-            job.job_id, loop, delay_execution(job_exec_awaitable, job.schedule_ts)
+
+        async def execute_job() -> None:
+            logging.info("running, %s", job.job_id)
+            scheduler.executing[job.job_id] = True
+            await run_adhoc_job(scheduler.adhoc_job_model, handler, job)
+            logging.info("finished, %s", job.job_id)
+            scheduler.scheduled.pop(job.job_id)
+            scheduler.executing.pop(job.job_id)
+            return
+
+        def create_job_task() -> None:
+            create_unfailing_task(job.job_id, loop, execute_job())
+            return
+
+        scheduler.scheduled[job.job_id] = schedule_execution(
+            loop, create_job_task, job.schedule_ts
         )
     return
 

@@ -8,7 +8,7 @@ However, we must query the adhoc_jobs table at the same interval as our cache,
 so it cannot be arbitrarily small.
 """
 
-from asyncio import Task
+from asyncio import TimerHandle
 
 from pjobq.models import AdhocJobModel
 
@@ -23,7 +23,8 @@ class AdhocSchedulerState:
     We refer to the current time range as the 'window'.
     """
 
-    scheduled: dict[str, Task]
+    scheduled: dict[str, TimerHandle]
+    executing: dict[str, bool]
     adhoc_job_model: AdhocJobModel
     start_time: float = 0
     end_time: float = 0
@@ -33,5 +34,6 @@ class AdhocSchedulerState:
         adhoc_job_model: AdhocJobModel,
     ):
         self.scheduled = {}
+        self.executing = {}
         self.adhoc_job_model = adhoc_job_model
         return self

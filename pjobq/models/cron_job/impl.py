@@ -12,7 +12,7 @@ class CronJobModelImpl(CronJobModel):
 
     async def get_all(self) -> list[CronJob]:
         sql = """
-        SELECT job_id,
+        SELECT job_id::TEXT,
                job_name,
                cron_schedule,
                cmd_type,
