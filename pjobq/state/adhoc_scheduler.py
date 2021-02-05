@@ -23,6 +23,7 @@ class AdhocSchedulerState:
     We refer to the current time range as the 'window'.
     """
 
+    sched_time: dict[str, float]
     scheduled: dict[str, TimerHandle]
     executing: dict[str, bool]
     adhoc_job_model: AdhocJobModel
@@ -33,6 +34,7 @@ class AdhocSchedulerState:
         self,
         adhoc_job_model: AdhocJobModel,
     ):
+        self.sched_time = {}
         self.scheduled = {}
         self.executing = {}
         self.adhoc_job_model = adhoc_job_model

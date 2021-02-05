@@ -36,30 +36,47 @@ def schedule_adhoc_jobs(
     "purely additive for the moment - ie. we don't 'unschedule' any jobs"
     for job in jobs:
         if job.job_id in scheduler.scheduled:
+            if scheduler.sched_time[job.job_id] == job.schedule_ts:
+                # nothing to reschedule
+                continue
             if job.job_id in scheduler.executing:
                 # we can't cancel it, it's already executing.
                 # we just skip this job
                 continue
-            logging.info("cancelling job %s", job.job_id)
+            logging.info("job rescheduled - cancelling %s", job.job_id)
             scheduler.scheduled[job.job_id].cancel()
 
-        async def execute_job() -> None:
-            logging.info("running, %s", job.job_id)
-            scheduler.executing[job.job_id] = True
-            await run_adhoc_job(scheduler.adhoc_job_model, handler, job)
-            logging.info("finished, %s", job.job_id)
-            scheduler.scheduled.pop(job.job_id)
-            scheduler.executing.pop(job.job_id)
-            return
-
-        def create_job_task() -> None:
-            create_unfailing_task(job.job_id, loop, execute_job())
-            return
-
+        scheduler.sched_time[job.job_id] = job.schedule_ts
         scheduler.scheduled[job.job_id] = schedule_execution(
-            loop, create_job_task, job.schedule_ts
+            loop, job_execution_cb_factory(scheduler, loop, job, handler), job.schedule_ts
         )
     return
+
+
+def job_execution_cb_factory(
+    scheduler: AdhocSchedulerState,
+    loop: EventLoop,
+    job: AdhocJob,
+    handler: JobHandler,
+):
+    """
+    Define the callback to be run at execution time.
+    We run the job as an asyncio Task.
+    Clean up the scheduler when the job has completed.
+    """
+    async def execute_job() -> None:
+        await run_adhoc_job(scheduler.adhoc_job_model, handler, job)
+        scheduler.sched_time.pop(job.job_id)
+        scheduler.scheduled.pop(job.job_id)
+        scheduler.executing.pop(job.job_id)
+        return
+
+    def create_job_task() -> None:
+        scheduler.executing[job.job_id] = True
+        create_unfailing_task(job.job_id, loop, execute_job())
+        return
+
+    return create_job_task
 
 
 async def update_adhoc_window(
