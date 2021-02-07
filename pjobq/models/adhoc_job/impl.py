@@ -18,7 +18,7 @@ class AdhocJobModelImpl(AdhocJobModel):
         end_time: float,
     ) -> list[AdhocJob]:
         sql = """
-        SELECT job_id,
+        SELECT job_id::TEXT,
                job_name,
                EXTRACT(epoch FROM schedule_ts) schedule_ts,
                cmd_type,
@@ -26,6 +26,7 @@ class AdhocJobModelImpl(AdhocJobModel):
           FROM adhoc_job
          WHERE schedule_ts >= to_timestamp($1)
            AND schedule_ts <= to_timestamp($2)
+           AND completed_ts IS NULL
         """
         rows = await self.db.fetch(sql, [start_time, end_time])
         return [adhoc_job_converter(row) for row in rows]

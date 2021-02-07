@@ -32,14 +32,16 @@ class TestUtil(IsolatedAsyncioTestCase):
         return
 
 
-    async def test_delay_execution(self):
+    async def test_schedule_execution(self):
         mock = MagicMock()
-        async def test_fn():
+        def test_fn():
             mock(time.time())
         now = time.time()
         soon = now + 1
-        await util.delay_execution(test_fn(), soon)
-        self.assertAlmostEqual(mock.call_args_list[0].args[0], soon, 1) # we aren't very precise
+        loop = asyncio.get_event_loop()
+        util.schedule_execution(loop, test_fn, soon)
+        await asyncio.sleep(1)  # wait for it
+        self.assertAlmostEqual(mock.call_args_list[0].args[0], soon, 2)
         return
 
 

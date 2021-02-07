@@ -7,6 +7,8 @@ import logging
 import time
 from typing import Awaitable, Callable
 
+from pjobq.apptypes import EventLoop
+
 
 DEFAULT_WAIT_LIMIT_S = 128  # approx 2 mins
 
@@ -31,9 +33,7 @@ async def attempt_forever(
     return
 
 
-def create_unfailing_task(
-    name: str, loop: asyncio.AbstractEventLoop, aw: Awaitable
-) -> asyncio.Task:
+def create_unfailing_task(name: str, loop: EventLoop, aw: Awaitable) -> asyncio.Task:
     """
     Prvents any errors in the task from bubbling up.
     We log the exception but otherwise do nothing.
@@ -49,6 +49,13 @@ def create_unfailing_task(
     return loop.create_task(impl())
 
 
+def schedule_execution(
+    loop: EventLoop, callback: Callable[[], None], when: float
+) -> asyncio.TimerHandle:
+    "execute callback at 'when'"
+    return loop.call_later(when - time.time(), callback)
+
+
 def setup_logging(level=logging.INFO) -> None:
     logging.basicConfig(
         level=level,
@@ -57,11 +64,3 @@ def setup_logging(level=logging.INFO) -> None:
         datefmt="%Y-%m-%d %H:%M:%S",
     )
     return
-
-
-async def delay_execution(awaitable: Awaitable, until: float) -> Awaitable:
-    """
-    Execute awaitable at 'until'
-    """
-    await asyncio.sleep(until - time.time())
-    return await awaitable
