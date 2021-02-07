@@ -26,6 +26,13 @@ class AdhocSchedulerState:
     sched_time: dict[str, float]
     scheduled: dict[str, TimerHandle]
     executing: dict[str, bool]
+    # because we rely on the DB to keep track of
+    # completed jobs, if jobs are reloaded before
+    # we have a chance to mark them done in the DB,
+    # they can be executed twice.
+    # Thus keep a working copy of finished jobs.
+    finished_cooldown: dict[str, bool]
+
     adhoc_job_model: AdhocJobModel
     start_time: float = 0
     end_time: float = 0
@@ -37,5 +44,6 @@ class AdhocSchedulerState:
         self.sched_time = {}
         self.scheduled = {}
         self.executing = {}
+        self.finished_cooldown = {}
         self.adhoc_job_model = adhoc_job_model
         return self

@@ -33,7 +33,7 @@ async def start_test_http_server(test: TestResults):
     async def base_handler(req):
         body = await req.text()
         test.set_received(body)
-        # req_q.put_nowait(body)
+        print("received", body)
         return web.Response(text="TEST-OK")
     app = web.Application()
     app.add_routes([web.post("/", base_handler)])

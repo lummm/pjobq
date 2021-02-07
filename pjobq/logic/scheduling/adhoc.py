@@ -35,6 +35,9 @@ def schedule_adhoc_jobs(
 ) -> None:
     "purely additive for the moment - ie. we don't 'unschedule' any jobs"
     for job in jobs:
+        if job.job_id in scheduler.finished_cooldown:
+            # the job has already executed
+            continue
         if job.job_id in scheduler.scheduled:
             if scheduler.sched_time[job.job_id] == job.schedule_ts:
                 # nothing to reschedule
@@ -72,9 +75,17 @@ def job_execution_cb_factory(
 
     async def execute_job() -> None:
         await run_adhoc_job(scheduler.adhoc_job_model, handler, job)
+        scheduler.finished_cooldown[job.job_id] = True
         scheduler.sched_time.pop(job.job_id)
         scheduler.scheduled.pop(job.job_id)
         scheduler.executing.pop(job.job_id)
+        # clean this up when safe
+        loop.call_later(
+            ADHOC_JOB_INTERVAL_S,
+            lambda: scheduler.finished_cooldown.pop(job.job_id)
+            if job.job_id in scheduler.finished_cooldown
+            else None,
+        )
         return
 
     def create_job_task() -> None:
