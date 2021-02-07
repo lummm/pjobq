@@ -1,5 +1,0 @@
-name: 'pjobq'
-description: 'Dockerfile build'
-runs:
-  using: 'docker'
-  image: 'Dockerfile'
