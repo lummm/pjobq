@@ -1,0 +1,17 @@
+* incorporating time zone in cron jobs
+
+ Problem: need to schedule cron jobs at times relative to multiple time zones
+
+ Solution:
+
+ - add TEXT column 'timezone' to cron_jobs
+   (thus, this means creating a cron job requires specifying the time zone)
+ - when checking for cron jobs to run in a given minute,
+   compare the cron expression to the current time in the timezone of that job's definition.
+
+- db defs:
+  pjobq/db/sql.py:30
+- executing:
+  pjobq/logic/scheduling/cron.py:27
+- types:
+  pjobq/apptypes.py:23
