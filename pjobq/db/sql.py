@@ -30,7 +30,8 @@ TABLE_CRON_JOB = """
 CREATE TABLE IF NOT EXISTS cron_job (
   job_id  UUID   NOT NULL  DEFAULT uuid_generate_v1mc(),
   created  TIMESTAMPTZ  NOT NULL  DEFAULT now(),
-  enabled BOOLEAN  NOT NULL  DEFAULT TRUE,
+  enabled  BOOLEAN  NOT NULL  DEFAULT TRUE,
+  timezone  TEXT  NOT NULL,
   job_name  TEXT  NOT NULL,
   cron_schedule  TEXT  NOT NULL,
   cmd_type  TEXT  NOT NULL
@@ -45,6 +46,7 @@ COMMENT ON TABLE cron_job IS 'Jobs scheduled with cron syntax';
 COMMENT ON COLUMN cron_job.job_id IS 'Unique job ID.';
 COMMENT ON COLUMN cron_job.created IS 'Time job created';
 COMMENT ON COLUMN cron_job.enabled IS 'Whether cron job is enabled';
+COMMENT ON COLUMN cron_job.timezone IS 'Timezone in which cron expression should be evaluated.  Ex. America/Vancouver.';
 COMMENT ON COLUMN cron_job.job_name IS 'Human readable name for job';
 COMMENT ON COLUMN cron_job.cron_schedule IS 'Cron syntax schedule for job';
 COMMENT ON COLUMN cron_job.cmd_type IS 'Type of command.  See "check_cmd_type".';
@@ -58,7 +60,8 @@ CREATE OR REPLACE FUNCTION cron_job_create(
   IN p_job_name  cron_job.job_name%TYPE,
   IN p_cmd_type  cron_job.cmd_type%TYPE,
   IN p_cmd_payload  cron_job.cmd_payload%TYPE,
-  IN p_enabled  cron_job.enabled%TYPE DEFAULT TRUE
+  IN p_timezone  cron_job.timezone%TYPE  DEFAULT 'UTC',
+  IN p_enabled  cron_job.enabled%TYPE  DEFAULT TRUE
 )
 RETURNS UUID
 AS $$
@@ -71,6 +74,7 @@ BEGIN
                 cron_schedule,
                 cmd_type,
                 cmd_payload,
+                timezone,
                 enabled
               )
        VALUES (
@@ -79,6 +83,7 @@ BEGIN
                 TRIM(p_cron_schedule),
                 p_cmd_type,
                 p_cmd_payload,
+                p_timezone,
                 p_enabled
               )
               ;
@@ -97,6 +102,7 @@ CREATE OR REPLACE FUNCTION cron_job_create_http(
   IN p_job_name  cron_job.job_name%TYPE,
   IN p_http_method  TEXT,
   IN p_url  TEXT,
+  IN p_timezone  cron_job.timezone%TYPE  DEFAULT 'UTC',
   IN p_body  TEXT  DEFAULT '',
   IN p_enabled  cron_job.enabled%TYPE DEFAULT TRUE
 )
@@ -112,7 +118,8 @@ BEGIN
       'method', p_http_method,
       'url', p_url,
       'body', p_body
-    )::TEXT
+    )::TEXT,
+    p_timezone  => p_timezone
   );
 END;
 $$
@@ -185,7 +192,7 @@ LANGUAGE plpgsql
 FN_ADHOC_JOB_CREATE_HTTP = """
 CREATE OR REPLACE FUNCTION adhoc_job_create_http(
   IN p_schedule_ts  adhoc_job.schedule_ts%TYPE,
-  IN p_job_name  cron_job.job_name%TYPE,
+  IN p_job_name  adhoc_job.job_name%TYPE,
   IN p_http_method  TEXT,
   IN p_url  TEXT,
   IN p_body  TEXT  DEFAULT ''

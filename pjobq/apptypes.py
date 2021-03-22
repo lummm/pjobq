@@ -20,6 +20,7 @@ class Job:
 @dataclass
 class CronJob(Job):
     "job scheduled with cron syntax (ie. recurring)"
+    timezone: str
     cron_schedule: str
 
 

@@ -1,3 +1,4 @@
 aiohttp==3.7.3
 asyncpg==0.21.0
 pycron==3.0.0
+pytz==2021.1

@@ -1,7 +1,10 @@
+from datetime import datetime
 import json
 import unittest
 from unittest import IsolatedAsyncioTestCase
 from unittest.mock import AsyncMock, MagicMock
+
+from pytz import timezone
 
 from pjobq.constants import NOTIFY_UPDATE_CMD
 
@@ -18,7 +21,8 @@ class TestCron(IsolatedAsyncioTestCase):
         hack_pycron_is_now(lambda x, y: True)
         handler = AsyncMock()
         await cron.run_scheduled_cron_jobs(
-            dt=None,
+            dt_utc=datetime.now(
+                timezone("UTC")),
             cron_jobs=jobs,
             handler=handler
         )

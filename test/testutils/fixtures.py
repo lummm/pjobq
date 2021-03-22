@@ -20,6 +20,7 @@ cron_job = lambda: CronJob(
     cmd_type="HTTP",
     cmd_payload=http_get_payload(),
     cron_schedule="* * * * *",
+    timezone="UTC"
 )
 def adhoc_job(
         job_id = "an-id",

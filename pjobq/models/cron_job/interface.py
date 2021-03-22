@@ -21,6 +21,7 @@ class CronJobModel(ABC):
         self,
         *,
         cron_schedule: str,
+        timezone: str,
         job_name: str,
         cmd_type: str,
         cmd_payload: str,

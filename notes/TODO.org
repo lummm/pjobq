@@ -15,3 +15,13 @@
   pjobq/logic/scheduling/cron.py:27
 - types:
   pjobq/apptypes.py:23
+- model:
+  pjobq/models/cron_job/impl.py:28
+
+** impl
+ - pjobq/logic/scheduling/cron.py:21
+  ^ make sure the time to be evaluated is passed in as UTC,
+    then within the function we can convert with
+#+begin_src python
+dt_utc.astimezone(timezone("America/Vancouver"))
+#+end_src

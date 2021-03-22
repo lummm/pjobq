@@ -6,6 +6,8 @@ import asyncio
 from datetime import datetime
 import logging
 
+from pytz import timezone
+
 from pjobq.apptypes import JobHandler, Job
 from pjobq.state import State, default_init
 from pjobq.constants import (
@@ -63,12 +65,12 @@ async def run_cron_job_loop(
     await scheduling.reload_cron_jobs(state.cron_scheduler)
     while True:
         await asyncio.sleep(60)
-        dt = datetime.now().replace(second=0, microsecond=0)
+        dt_utc = datetime.now(timezone("UTC")).replace(second=0, microsecond=0)
         create_unfailing_task(
             "run cron jobs",
             state.loop,
             scheduling.run_scheduled_cron_jobs(
-                dt=dt,
+                dt_utc=dt_utc,
                 cron_jobs=state.cron_scheduler.cron_jobs,
                 handler=handler,
             ),

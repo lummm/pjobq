@@ -15,6 +15,7 @@ class CronJobModelImpl(CronJobModel):
         SELECT job_id::TEXT,
                job_name,
                cron_schedule,
+               timezone,
                cmd_type,
                cmd_payload
           FROM cron_job
@@ -27,6 +28,7 @@ class CronJobModelImpl(CronJobModel):
         self,
         *,
         cron_schedule: str,
+        timezone: str,
         job_name: str,
         cmd_type: str,
         cmd_payload: str,
@@ -38,10 +40,11 @@ class CronJobModelImpl(CronJobModel):
                  p_job_name => $2,
                  p_cmd_type => $3,
                  p_cmd_payload => $4,
-                 p_enabled => $5
+                 p_enabled => $5,
+                 p_timezone  => $6
                )
         """
         await self.db.fetch(
-            sql, [cron_schedule, job_name, cmd_type, cmd_payload, enabled]
+            sql, [cron_schedule, job_name, cmd_type, cmd_payload, enabled, timezone]
         )
         return
