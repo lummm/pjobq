@@ -215,3 +215,55 @@ $$
 LANGUAGE plpgsql
 ;
 """
+
+
+FN_CRON_JOB_DELETE = """
+CREATE OR REPLACE FUNCTION cron_job_delete(
+  IN p_job_names  TEXT[]
+)
+RETURNS INTEGER
+AS $$
+DECLARE
+  v_job_count  INTEGER;
+BEGIN
+  WITH deleted AS (
+    DELETE FROM cron_job
+          WHERE job_name = ANY(p_job_names)
+      RETURNING *
+  ) SELECT count(*)
+      INTO v_job_count
+      FROM deleted
+  ;
+  PERFORM pg_notify('cron_job', 'update');
+  RETURN v_job_count;
+END;
+$$
+LANGUAGE plpgsql
+;
+"""
+
+
+FN_ADHOC_JOB_DELETE = """
+CREATE OR REPLACE FUNCTION adhoc_job_delete(
+  IN p_job_names  TEXT[]
+)
+RETURNS INTEGER
+AS $$
+DECLARE
+  v_job_count  INTEGER;
+BEGIN
+  WITH deleted AS (
+    DELETE FROM adhoc_job
+          WHERE job_name = ANY(p_job_names)
+      RETURNING *
+  ) SELECT count(*)
+      INTO v_job_count
+      FROM deleted
+  ;
+  PERFORM pg_notify('adhoc_job', 'update');
+  RETURN v_job_count;
+END;
+$$
+LANGUAGE plpgsql
+;
+"""

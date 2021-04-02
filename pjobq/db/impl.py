@@ -26,6 +26,8 @@ INIT_SQL = [
     sql.TABLE_ADHOC_JOB,
     sql.FN_ADHOC_JOB_CREATE,
     sql.FN_ADHOC_JOB_CREATE_HTTP,
+    sql.FN_CRON_JOB_DELETE,
+    sql.FN_ADHOC_JOB_DELETE,
 ]
 
 
